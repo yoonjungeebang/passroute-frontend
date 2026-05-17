@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -642,8 +642,8 @@ function LiveInterviewScreen({
   )
 }
 
-// Main Page Component
-export default function InterviewPage() {
+// Inner component that uses useSearchParams
+function InterviewPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const modeParam = searchParams?.get("mode") as InterviewMode | null
@@ -709,4 +709,13 @@ export default function InterviewPage() {
   }
 
   return <LiveInterviewScreen mode={mode} onEnd={handleInterviewEnd} />
+}
+
+// Main Page Component
+export default function InterviewPage() {
+  return (
+    <Suspense>
+      <InterviewPageInner />
+    </Suspense>
+  )
 }
