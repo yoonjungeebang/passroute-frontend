@@ -13,7 +13,7 @@ export default function MaterialsPage() {
       <main className="w-full overflow-auto lg:ml-64">
         <MobileHeader />
         <div className="space-y-4 px-4 py-6 sm:px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
+          <Link href="/dashboard" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4">
             <ChevronLeft className="h-4 w-4" />
             돌아가기
           </Link>
@@ -23,7 +23,7 @@ export default function MaterialsPage() {
             <p className="text-muted-foreground">이력서와 포트폴리오 자료를 관리하세요.</p>
           </div>
 
-          <DocumentAssets excludeSelfIntro={true} />
+          <DocumentAssets />
         </div>
       </main>
     </div>

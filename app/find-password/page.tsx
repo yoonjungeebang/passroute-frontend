@@ -58,7 +58,7 @@ export default function FindPasswordPage() {
     setIsLoading(true)
     setInlineError("")
     try {
-      const response = await fetch("http://localhost:8080/auth/find-password/send", {
+      const response = await fetch(`/auth/find-password/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: parsePhoneNumber(verifyPhoneValue) }),
@@ -67,7 +67,7 @@ export default function FindPasswordPage() {
       const result = await response.json()
 
       if (!response.ok) {
-        setInlineError(result.error?.message || "인증 발송에 실패했습니다")
+        setInlineError(result.message || "인증 발송에 실패했습니다")
         return
       }
 
@@ -118,7 +118,7 @@ export default function FindPasswordPage() {
     setInlineError("")
 
     try {
-      const response = await fetch("http://localhost:8080/auth/find-password/reset", {
+      const response = await fetch(`/auth/find-password/reset`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -131,7 +131,7 @@ export default function FindPasswordPage() {
       const result = await response.json()
 
       if (!response.ok) {
-        setInlineError(result.error?.message || "비밀번호 변경에 실패했습니다")
+        setInlineError(result.message || "비밀번호 변경에 실패했습니다")
         return
       }
 
@@ -156,12 +156,7 @@ export default function FindPasswordPage() {
       <div className="w-full max-w-md">
         {/* Logo + Brand */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-violet-600 shadow-lg shadow-primary/30">
-              <span className="text-lg font-bold text-white">P</span>
-            </div>
-            <span className="text-2xl font-bold text-foreground">패스루트</span>
-          </div>
+          <h2 className="text-2xl font-bold text-foreground">passroute</h2>
         </div>
 
         {/* Form Card */}
@@ -238,7 +233,7 @@ export default function FindPasswordPage() {
                         type="button"
                         onClick={handleVerifyCode}
                         disabled={isLoading}
-                        className="w-full gap-2 bg-gradient-to-r from-primary to-violet-600 py-6 text-base font-semibold text-white shadow-lg shadow-primary/30 hover:opacity-90"
+                        className="w-full gap-2 bg-primary py-6 text-base font-semibold text-white hover:opacity-90"
                       >
                         {isLoading ? (
                           <>
@@ -336,7 +331,7 @@ export default function FindPasswordPage() {
                   <Button
                     type="submit"
                     disabled={isLoading || !passwordStrength.valid || !passwordsMatch}
-                    className="w-full gap-2 bg-gradient-to-r from-primary to-violet-600 py-6 text-base font-semibold text-white shadow-lg shadow-primary/30 hover:opacity-90 disabled:opacity-50"
+                    className="w-full gap-2 bg-primary py-6 text-base font-semibold text-white hover:opacity-90 disabled:opacity-50"
                   >
                     {isLoading ? (
                       <>
