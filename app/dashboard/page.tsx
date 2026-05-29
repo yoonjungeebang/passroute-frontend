@@ -15,11 +15,20 @@ function DashboardContent() {
   const searchParams = useSearchParams()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
+  const startInterviewId = searchParams?.get("startInterview")
+  const prefillData = startInterviewId ? {
+    introId: Number(startInterviewId),
+    stage: "technical",
+    mode: "one-on-one",
+    practiceMode: "practice" as const,
+    personas: ["TEAM_LEAD"],
+  } : null
+
   useEffect(() => {
-    if (searchParams?.get("startInterview")) {
+    if (startInterviewId) {
       setIsModalOpen(true)
     }
-  }, [searchParams])
+  }, [startInterviewId])
 
   const handleStartInterview = () => {
     setIsModalOpen(true)
@@ -45,6 +54,7 @@ function DashboardContent() {
       <InterviewModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
+        prefillData={prefillData}
       />
     </div>
   )

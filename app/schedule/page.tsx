@@ -501,7 +501,7 @@ export default function SchedulePage() {
               ) : (
                 filteredSchedules.map((schedule) => {
                   const dDay = getDDay(schedule.interviewDate)
-                  const sConfig = statusConfig[schedule.status]
+                  const sConfig = statusConfig[schedule.status] || { label: schedule.status, className: "" }
                   const isEditing = editingId === schedule.id
 
                   return (

@@ -1,4 +1,4 @@
-import { getAuthHeaders, handleAuthError } from "./client"
+import { apiFetch } from "./client"
 
 export interface SelfIntroItem {
   id: number
@@ -52,30 +52,7 @@ export interface SelfIntroUpdateRequest {
 }
 
 async function selfIntroFetch<T>(url: string, options: RequestInit = {}, errorMessage: string): Promise<T> {
-  const response = await fetch(url, {
-    ...options,
-    headers: { ...getAuthHeaders(), ...options.headers },
-  })
-
-  handleAuthError(response.status)
-
-  if (!response.ok) {
-    const text = await response.text()
-    let message = errorMessage
-    try {
-      const parsed = JSON.parse(text)
-      if (parsed.message) message = parsed.message
-    } catch {
-      // ignore
-    }
-    throw new Error(message)
-  }
-
-  if (options.method === "DELETE") return undefined as T
-
-  const text = await response.text()
-  if (!text) return undefined as T
-  return JSON.parse(text)
+  return apiFetch<T>(url, options, errorMessage)
 }
 
 export async function getSelfIntroList(filter?: string): Promise<SelfIntroResponse[]> {

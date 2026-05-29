@@ -14,29 +14,26 @@ import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { 
-  FileText, 
-  UserRound, 
-  Users, 
-  ArrowRight, 
-  ArrowLeft, 
-  Check, 
+import {
+  UserRound,
+  Users,
+  ArrowRight,
+  ArrowLeft,
+  Check,
   Mic,
   Briefcase,
-  AlertTriangle,
   Crown,
   Heart,
   Code,
-  Users2,
   ChevronDown,
   ChevronUp,
   Settings2,
   Building2,
   Sparkles,
+  Loader2,
   Dumbbell,
   Swords
 } from "lucide-react"
-import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { setupInterview, startInterview } from "@/lib/api/interview"
 import { getSelfIntroList, type SelfIntroResponse } from "@/lib/api/self-intro"
@@ -640,20 +637,22 @@ export function InterviewModal({ open, onOpenChange, prefillData }: InterviewMod
                   if (!currentIntro || !selectedStage || !selectedMode) return
                   setStarting(true)
                   try {
-                    const interviewType = selectedStage === "technical" ? "technical" : "personality"
+                    const interviewType = selectedStage === "technical" ? "TECHNICAL" : "PERSONALITY"
                     const interviewFormat = selectedMode === "group" ? "DEBATE" : "ONE_ON_ONE"
-                    const difficulty = settings.difficulty >= 7 ? "high" : settings.difficulty >= 4 ? "middle" : "low"
+                    const difficultyMap: Record<string, "EASY" | "NORMAL" | "HARD"> = { low: "EASY", middle: "NORMAL", high: "HARD" }
+                    const rawDifficulty = settings.difficulty >= 7 ? "high" : settings.difficulty >= 4 ? "middle" : "low"
+                    const difficulty = difficultyMap[rawDifficulty]
 
                     const { roomId } = await setupInterview({
                       siId: currentIntro.id,
                       companyName: currentIntro.companyName,
                       jobPosition: currentIntro.jobPosition,
-                      interviewType: interviewType as "TECHNICAL" | "PERSONALITY",
+                      interviewType,
                       interviewMode: "AI",
-                      interviewFormat: interviewFormat as "ONE_ON_ONE" | "DEBATE",
-                      aiInterviewer: selectedPersonas[0] || "practical",
+                      interviewFormat,
+                      aiInterviewer: selectedPersonas[0] || "TEAM_LEAD",
                       aiCompetitors: selectedPersonas.length > 1 ? selectedPersonas.slice(1).join(",") : undefined,
-                      difficulty: difficulty as "EASY" | "NORMAL" | "HARD",
+                      difficulty,
                       pressureLevel: settings.pressure,
                       followupCount: Math.min(settings.followUp, 5),
                     })
