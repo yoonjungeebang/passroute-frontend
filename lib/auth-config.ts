@@ -75,14 +75,13 @@ export function parsePhoneNumber(phone: string): string {
   return phone.replace(/\D/g, "")
 }
 
-// API Response 타입
+// API Response 타입 (백엔드 ApiResponse 구조와 일치)
 export interface ApiResponse<T> {
-  success: boolean
+  status: "success" | "error"
+  httpStatus: number
+  code: string
+  message: string
   data: T | null
-  error: {
-    code: string
-    message: string
-  } | null
 }
 
 export interface LoginResponse {
