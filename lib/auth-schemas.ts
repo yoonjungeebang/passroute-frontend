@@ -32,8 +32,6 @@ export const phoneVerificationSchema = z.object({
 
 // 비밀번호 찾기 - 새 비밀번호
 export const resetPasswordSchema = z.object({
-  phone: z.string().regex(/^010-?\d{3,4}-?\d{4}$/, "올바른 휴대폰 번호를 입력해주세요"),
-  code: z.string().regex(/^\d{6}$/, "인증번호는 6자리 숫자입니다"),
   newPassword: z.string().min(8, "비밀번호는 8~20자 영문/숫자/특수문자를 포함해야 합니다").max(20, "비밀번호는 최대 20자입니다"),
   confirmPassword: z.string(),
 }).refine((data) => data.newPassword === data.confirmPassword, {
