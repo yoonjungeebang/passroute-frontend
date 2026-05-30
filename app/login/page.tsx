@@ -56,14 +56,14 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col md:flex-row md:h-140">
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col md:flex-row md:h-160">
         <AuthBrandingPanel
           subtitle={"면접 준비의\n새로운 기준"}
           description="AI 기반 실시간 면접 분석으로 실전 대응 능력을 향상시키세요."
         />
 
         {/* Right Panel — Form */}
-        <div className="w-full md:w-7/12 p-8 md:p-12 flex flex-col justify-center overflow-y-auto">
+        <div className="w-full md:w-7/12 p-8 md:p-12 flex flex-col justify-center overflow-y-auto scrollbar-hide">
           {/* Mobile Logo */}
           <div className="md:hidden text-center mb-8">
             <h1 className="text-3xl font-bold tracking-tight text-foreground">passroute</h1>

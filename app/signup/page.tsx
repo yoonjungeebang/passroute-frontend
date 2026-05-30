@@ -209,14 +209,14 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col md:flex-row md:h-140">
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col md:flex-row md:h-160">
         <AuthBrandingPanel
           subtitle={"AI 면접 코칭으로\n합격에 한 걸음 더"}
           description="맞춤형 질문 생성과 멀티모달 분석으로 실전 면접을 준비하세요."
         />
 
         {/* Right Panel — Form */}
-        <div className="w-full md:w-7/12 p-8 md:p-10 flex flex-col justify-center overflow-y-auto">
+        <div className="w-full md:w-7/12 p-8 md:p-10 flex flex-col justify-center overflow-y-auto scrollbar-hide">
           {/* Mobile Logo */}
           <div className="md:hidden text-center mb-6">
             <h1 className="text-3xl font-bold tracking-tight text-foreground">passroute</h1>

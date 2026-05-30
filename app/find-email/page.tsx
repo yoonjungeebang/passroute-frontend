@@ -108,14 +108,14 @@ export default function FindEmailPage() {
 
   return (
     <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col md:flex-row md:h-140">
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col md:flex-row md:h-160">
         <AuthBrandingPanel
           subtitle={"가입한 이메일을\n찾아보세요"}
           description="휴대폰 번호 인증으로 간편하게 이메일을 확인할 수 있습니다."
         />
 
         {/* Right Panel — Form */}
-        <div className="w-full md:w-7/12 p-8 md:p-12 flex flex-col justify-center overflow-y-auto">
+        <div className="w-full md:w-7/12 p-8 md:p-12 flex flex-col justify-center overflow-y-auto scrollbar-hide">
           <div className="md:hidden text-center mb-8">
             <h1 className="text-3xl font-bold tracking-tight text-foreground">passroute</h1>
           </div>
