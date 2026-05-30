@@ -287,7 +287,7 @@ export function SelfIntroModal({
                   onChange={(e) => setData(prev => ({ ...prev, company: e.target.value }))}
                   onFocus={() => setShowCompanySuggestions(true)}
                   onBlur={() => setTimeout(() => setShowCompanySuggestions(false), 150)}
-                  className="border-border bg-secondary/30"
+                  className="border-border bg-secondary/30 focus-visible:ring-0 focus-visible:border-primary"
                 />
                 {showCompanySuggestions && data.company !== "" && (
                   <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-40 overflow-y-auto rounded-lg border border-border bg-card shadow-lg">

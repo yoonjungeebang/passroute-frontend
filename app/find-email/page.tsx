@@ -132,8 +132,8 @@ export default function FindEmailPage() {
               <p className="text-sm text-muted-foreground mb-8">휴대폰 번호를 인증하여 가입된 이메일을 확인하세요</p>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">휴대폰 번호</label>
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground mb-1">휴대폰 번호</label>
                   <div className="flex gap-2">
                     <Input
                       {...register("phone")}
@@ -163,8 +163,8 @@ export default function FindEmailPage() {
 
                 {codeSent && (
                   <>
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-foreground">인증번호</label>
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-foreground mb-1">인증번호</label>
                       <Input
                         {...register("code")}
                         type="text"

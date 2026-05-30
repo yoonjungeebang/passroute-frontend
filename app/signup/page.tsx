@@ -7,12 +7,70 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Eye, EyeOff, Check, X, Loader2, ChevronLeft, Plus, Trash2 } from "lucide-react"
+import { Eye, EyeOff, Check, X, Loader2, ChevronLeft, Plus, Trash2, ChevronDown } from "lucide-react"
 import { phoneVerificationSchema, signupStep2Schema, signupStep3Schema, type PhoneVerificationInput, type SignupStep2Input, type SignupStep3Input } from "@/lib/auth-schemas"
 import { formatPhoneNumber, parsePhoneNumber, validatePassword, JOB_TYPES, EXPERIENCE_YEARS } from "@/lib/auth-config"
 import { AuthBrandingPanel } from "@/components/auth-branding-panel"
 
 type SignupStep = 1 | 2 | 3
+
+function JobTypeMultiSelect({ selected, onChange, max }: { selected: string[]; onChange: (v: string[]) => void; max: number }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="space-y-3">
+      <label className="text-sm font-medium text-foreground">
+        희망 직무 <span className="text-xs text-muted-foreground">(최대 {max}개)</span>
+      </label>
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selected.map(key => (
+            <span key={key} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+              {JOB_TYPES[key as keyof typeof JOB_TYPES]}
+              <button type="button" onClick={() => onChange(selected.filter(k => k !== key))} className="hover:text-primary/70">&times;</button>
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="flex w-full items-center justify-between h-10 rounded-xl border border-border bg-background px-4 text-sm text-muted-foreground hover:border-primary/30 transition-colors"
+        >
+          {selected.length === 0 ? "직무를 선택하세요" : `${selected.length}개 선택됨`}
+          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+        </button>
+        {open && (
+          <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-48 overflow-y-auto rounded-xl border border-border bg-white shadow-lg">
+            {Object.entries(JOB_TYPES).map(([key, label]) => {
+              const isSelected = selected.includes(key)
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
+                    if (isSelected) {
+                      onChange(selected.filter(k => k !== key))
+                    } else if (selected.length < max) {
+                      onChange([...selected, key])
+                    }
+                  }}
+                  className={`flex w-full items-center justify-between px-4 py-2.5 text-sm transition-colors ${
+                    isSelected ? "bg-primary/5 text-primary font-medium" : "text-foreground hover:bg-muted/50"
+                  } ${!isSelected && selected.length >= max ? "opacity-40 cursor-not-allowed" : ""}`}
+                  disabled={!isSelected && selected.length >= max}
+                >
+                  {label}
+                  {isSelected && <Check className="h-4 w-4" />}
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function SignupPage() {
   const router = useRouter()
@@ -209,22 +267,22 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col md:flex-row md:h-160">
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col md:flex-row md:min-h-160">
         <AuthBrandingPanel
           subtitle={"AI 면접 코칭으로\n합격에 한 걸음 더"}
           description="맞춤형 질문 생성과 멀티모달 분석으로 실전 면접을 준비하세요."
         />
 
         {/* Right Panel — Form */}
-        <div className="w-full md:w-7/12 p-8 md:p-10 flex flex-col justify-center overflow-y-auto scrollbar-hide">
+        <div className="w-full md:w-7/12 p-6 md:px-10 md:py-8 flex flex-col justify-center overflow-y-auto scrollbar-hide">
           {/* Mobile Logo */}
           <div className="md:hidden text-center mb-6">
             <h1 className="text-3xl font-bold tracking-tight text-foreground">passroute</h1>
           </div>
 
           {/* Step Indicator */}
-          <div className="space-y-2 mb-6">
-            <div className="flex items-center justify-between px-1">
+          <div className="space-y-2 mb-8">
+            <div className="flex items-center justify-between">
               {stepLabels.map((label, i) => (
                 <span
                   key={label}
@@ -263,7 +321,7 @@ export default function SignupPage() {
               </div>
 
               <div className="space-y-4">
-                <div className="space-y-1.5">
+                <div className="space-y-3">
                   <label className="text-sm font-medium text-foreground">휴대폰 번호</label>
                   <div className="flex gap-2">
                     <Input
@@ -294,7 +352,7 @@ export default function SignupPage() {
 
                 {codeSent && (
                   <>
-                    <div className="space-y-1.5">
+                    <div className="space-y-3">
                       <label className="text-sm font-medium text-foreground">인증번호</label>
                       <Input
                         {...step1Form.register("code")}
@@ -389,7 +447,7 @@ export default function SignupPage() {
               </div>
 
               <div className="space-y-4">
-                <div className="space-y-1.5">
+                <div className="space-y-3">
                   <label className="text-sm font-medium text-foreground">이름</label>
                   <Input
                     {...step2Form.register("name")}
@@ -402,7 +460,7 @@ export default function SignupPage() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-3">
                   <label className="text-sm font-medium text-foreground">이메일</label>
                   <Input
                     {...step2Form.register("email")}
@@ -416,7 +474,7 @@ export default function SignupPage() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-3">
                   <label className="text-sm font-medium text-foreground">비밀번호</label>
                   <div className="relative">
                     <Input
@@ -450,7 +508,7 @@ export default function SignupPage() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-3">
                   <label className="text-sm font-medium text-foreground">비밀번호 확인</label>
                   <div className="relative">
                     <Input
@@ -512,13 +570,13 @@ export default function SignupPage() {
                 {/* Experience */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-foreground">경력</label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-4 gap-2">
                     {Object.entries(EXPERIENCE_YEARS).map(([years, label]) => (
                       <button
                         key={years}
                         type="button"
                         onClick={() => step3Form.setValue("experienceYears", parseInt(years))}
-                        className={`h-10 rounded-lg border text-sm font-medium transition-all ${
+                        className={`h-9 rounded-xl border text-xs font-medium transition-all ${
                           step3Form.watch("experienceYears") === parseInt(years)
                             ? "bg-primary/10 border-primary text-primary"
                             : "border-border text-muted-foreground hover:border-primary/30"
@@ -531,38 +589,17 @@ export default function SignupPage() {
                 </div>
 
                 {/* Job Types */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">희망 직무</label>
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(JOB_TYPES).map(([key, label]) => {
-                      const selected = (step3Form.watch("preferredJobTypes") || []).includes(key)
-                      return (
-                        <button
-                          key={key}
-                          type="button"
-                          onClick={() => {
-                            const current = step3Form.watch("preferredJobTypes") || []
-                            const updated = current.includes(key)
-                              ? current.filter(t => t !== key)
-                              : [...current, key]
-                            step3Form.setValue("preferredJobTypes", updated)
-                          }}
-                          className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
-                            selected
-                              ? "bg-primary/10 border-primary text-primary"
-                              : "border-border text-muted-foreground hover:border-primary/30"
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
+                <JobTypeMultiSelect
+                  selected={step3Form.watch("preferredJobTypes") || []}
+                  onChange={(updated) => step3Form.setValue("preferredJobTypes", updated)}
+                  max={5}
+                />
 
                 {/* Companies */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">희망 기업</label>
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">
+                    희망 기업 <span className="text-xs text-muted-foreground">(최대 10개)</span>
+                  </label>
                   {(step3Form.watch("preferredCompanies") || []).length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {(step3Form.watch("preferredCompanies") || []).map((company, idx) => (
@@ -590,12 +627,13 @@ export default function SignupPage() {
                       id="company-input"
                       placeholder="기업명 입력 후 Enter"
                       className="h-10 flex-1 border-border bg-background text-sm"
+                      disabled={(step3Form.watch("preferredCompanies") || []).length >= 10}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.nativeEvent.isComposing) {
                           e.preventDefault()
                           const value = (e.target as HTMLInputElement).value.trim()
-                          if (value) {
-                            const current = step3Form.watch("preferredCompanies") || []
+                          const current = step3Form.watch("preferredCompanies") || []
+                          if (value && current.length < 10 && !current.includes(value)) {
                             step3Form.setValue("preferredCompanies", [...current, value])
                             ;(e.target as HTMLInputElement).value = ""
                           }
@@ -607,11 +645,12 @@ export default function SignupPage() {
                       size="icon"
                       variant="outline"
                       className="h-10 w-10 shrink-0 border-border"
+                      disabled={(step3Form.watch("preferredCompanies") || []).length >= 10}
                       onClick={() => {
                         const input = document.getElementById("company-input") as HTMLInputElement
                         const value = input?.value.trim()
-                        if (value) {
-                          const current = step3Form.watch("preferredCompanies") || []
+                        const current = step3Form.watch("preferredCompanies") || []
+                        if (value && current.length < 10 && !current.includes(value)) {
                           step3Form.setValue("preferredCompanies", [...current, value])
                           input.value = ""
                         }

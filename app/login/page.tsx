@@ -78,8 +78,8 @@ export default function LoginPage() {
               </div>
             )}
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">이메일</label>
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-foreground mb-1">이메일</label>
               <Input
                 {...register("email")}
                 type="email"
@@ -92,8 +92,8 @@ export default function LoginPage() {
               )}
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-foreground">비밀번호</label>
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-foreground mb-1">비밀번호</label>
               <div className="relative">
                 <Input
                   {...register("password")}

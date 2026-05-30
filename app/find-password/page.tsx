@@ -173,8 +173,8 @@ export default function FindPasswordPage() {
               <p className="text-sm text-muted-foreground mb-8">휴대폰 번호를 인증하여 비밀번호를 변경하세요</p>
 
               <form className="space-y-5">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">휴대폰 번호</label>
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground mb-1">휴대폰 번호</label>
                   <div className="flex gap-2">
                     <Input
                       {...verifyForm.register("phone")}
@@ -204,8 +204,8 @@ export default function FindPasswordPage() {
 
                 {codeSent && (
                   <>
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-foreground">인증번호</label>
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-foreground mb-1">인증번호</label>
                       <Input
                         {...verifyForm.register("code")}
                         type="text"
@@ -258,8 +258,8 @@ export default function FindPasswordPage() {
               <p className="text-sm text-muted-foreground mb-8">새로운 비밀번호를 설정해 주세요</p>
 
               <form onSubmit={resetForm.handleSubmit(onResetSubmit)} className="space-y-5">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">새 비밀번호</label>
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground mb-1">새 비밀번호</label>
                   <div className="relative">
                     <Input
                       {...resetForm.register("newPassword")}
@@ -291,8 +291,8 @@ export default function FindPasswordPage() {
                   )}
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">새 비밀번호 확인</label>
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground mb-1">새 비밀번호 확인</label>
                   <div className="relative">
                     <Input
                       {...resetForm.register("confirmPassword")}
