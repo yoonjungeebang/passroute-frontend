@@ -42,14 +42,14 @@ export function Sidebar() {
   const visibleItems = menuItems.filter(item => !item.mobileOnly)
 
   return (
-    <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col border-r border-border bg-card lg:flex">
+    <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col border-r border-border/40 bg-white lg:flex">
       {/* Logo */}
-      <div className="flex h-16 items-center border-b border-border px-6">
+      <div className="flex h-16 items-center px-6">
         <span className="text-2xl font-bold text-foreground">passroute</span>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-0.5 px-3 py-2">
         {visibleItems.map((item) => {
           const isExpanded = expandedItems.includes(item.label)
           const hasActiveChild = isChildActive(item.children)
@@ -61,10 +61,10 @@ export function Sidebar() {
                 <button
                   onClick={() => toggleExpand(item.label)}
                   className={cn(
-                    "flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                    "flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                     hasActiveChild
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                   )}
                 >
                   <div className="flex items-center gap-3">
@@ -72,29 +72,30 @@ export function Sidebar() {
                     {item.label}
                   </div>
                   <ChevronDown className={cn(
-                    "h-4 w-4 transition-transform duration-200",
+                    "h-4 w-4 transition-transform duration-300",
                     isExpanded && "rotate-180"
                   )} />
                 </button>
-                {isExpanded && (
-                  <div className="ml-4 mt-1 space-y-1 border-l border-border pl-4">
-                    {item.children.map((child) => (
-                      <Link
-                        key={child.href}
-                        href={child.href}
-                        className={cn(
-                          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all duration-200",
-                          isActive(child.href)
-                            ? "bg-primary/10 text-primary font-medium"
-                            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                        )}
-                      >
-                        <child.icon className="h-4 w-4" />
-                        {child.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
+                <div className={cn(
+                  "ml-4 mt-0.5 space-y-0.5 overflow-hidden transition-all duration-300",
+                  isExpanded ? "max-h-40 opacity-100 pl-4" : "max-h-0 opacity-0 pl-4"
+                )}>
+                  {item.children.map((child) => (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      className={cn(
+                        "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-all duration-200",
+                        isActive(child.href)
+                          ? "bg-primary/8 text-primary font-medium"
+                          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                      )}
+                    >
+                      <child.icon className="h-4 w-4" />
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
             )
           }
@@ -104,10 +105,10 @@ export function Sidebar() {
               key={item.href || item.label}
               href={item.href || "/dashboard"}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 itemActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  ? "bg-primary/8 text-primary shadow-sm"
+                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
               )}
             >
               <item.icon className="h-4.5 w-4.5" />
@@ -118,11 +119,11 @@ export function Sidebar() {
       </nav>
 
       {/* User Profile */}
-      <div className="border-t border-border p-4">
-        <div className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-secondary">
-          <Avatar className="h-9 w-9 ring-2 ring-border">
+      <div className="border-t border-border/40 p-3">
+        <div className="flex items-center gap-3 px-3 py-2">
+          <Avatar className="h-9 w-9">
             <AvatarImage src={undefined} alt={user?.name} />
-            <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
+            <AvatarFallback className="bg-primary text-xs font-medium text-white">
               {user?.name?.slice(0, 2) ?? "—"}
             </AvatarFallback>
           </Avatar>

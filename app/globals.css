@@ -28,7 +28,7 @@
 /* Color Palette — Warm base + Steel Blue accent
    #66788E · #A79A8A · #F8F7F3 · #3E3630 · #B1BCC9 · #524331 */
 :root {
-  --color-bg: #FFFFFF;
+  --color-bg: #FEFEFD;
   --color-surface: #FFFFFF;
   --color-text: #3E3630;
   --color-primary: #66788E;
@@ -93,7 +93,7 @@
 @theme inline {
   --font-sans: 'TMoneyRoundWind', 'Geist', sans-serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
-  --color-background: #FFFFFF;
+  --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
@@ -166,6 +166,18 @@
   font-family: 'SpaceGrotesk', 'Geist', sans-serif;
   font-weight: 700;
   letter-spacing: -0.03em;
+}
+
+/* Hero blob animations */
+@keyframes hero-blob1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30%, 10%) scale(1.1); }
+  66% { transform: translate(-10%, -15%) scale(0.95); }
+}
+@keyframes hero-blob2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-20%, -10%) scale(1.05); }
+  66% { transform: translate(15%, 20%) scale(1.1); }
 }
 
 /* Page enter animation */

@@ -29,24 +29,14 @@ export function HeroSection({ onStartInterview }: HeroSectionProps) {
   return (
     <div className="space-y-5 animate-page-enter">
       {/* Main CTA Banner */}
-      <div className="relative overflow-hidden rounded-xl border border-border bg-white p-8">
+      <div className="relative overflow-hidden rounded-xl border border-border bg-white px-10 py-12">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute inset-0 opacity-[0.03]" style={{
-            backgroundImage: "radial-gradient(circle, #3E3630 1px, transparent 1px)",
-            backgroundSize: "24px 24px",
-          }} />
-          <div className="absolute -right-8 -top-8 h-56 w-56 rounded-full border border-primary/10 animate-float" />
-          <div className="absolute -right-4 -top-4 h-40 w-40 rounded-full border border-primary/5 animate-float" style={{ animationDelay: "1s" }} />
-          <div className="absolute -bottom-6 right-1/4 h-32 w-32 rounded-full bg-primary/[0.03] animate-float" style={{ animationDelay: "2s" }} />
           <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-primary/40 via-primary/10 to-transparent rounded-full" />
+          <div className="absolute inset-0" style={{ background: "radial-gradient(circle at 50% 50%, var(--color-primary) 0%, transparent 70%)", opacity: 0.06 }} />
         </div>
 
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex-1 space-y-4">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-xs font-medium text-primary">AI 면접 코칭</span>
-            </div>
             <h2 className="text-2xl font-bold leading-tight text-foreground lg:text-3xl">
               혼자 준비하기 어려웠던 면접,<br />
               <span className="text-primary">PASSROUTE와 함께 돌파하세요</span>
