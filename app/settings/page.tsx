@@ -113,9 +113,9 @@ export default function SettingsPage() {
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                 <Settings className="h-5 w-5 text-primary" />
               </div>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">설정</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">설정</h1>
             </div>
-            <p className="text-muted-foreground">프로필 정보를 관리하세요</p>
+            <p className="text-sm text-muted-foreground">프로필 정보를 관리하세요</p>
           </div>
 
           {/* Profile Section */}

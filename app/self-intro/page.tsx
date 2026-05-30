@@ -77,7 +77,7 @@ export default function SelfIntroPage() {
                 </Link>
               </Button>
               <div>
-                <h1 className="text-xl font-semibold text-foreground lg:text-2xl">자기소개서</h1>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">자기소개서</h1>
                 <p className="text-sm text-muted-foreground">전체 {selfIntros.length}개의 자기소개서</p>
               </div>
             </div>

@@ -320,8 +320,8 @@ export default function SchedulePage() {
                 </Link>
               </Button>
               <div>
-                <h1 className="text-lg font-semibold text-foreground lg:text-xl">면접 일정 관리</h1>
-                <p className="text-xs text-muted-foreground lg:text-sm">전체 {schedules.length}개의 면접 일정</p>
+                <h1 className="text-2xl font-bold tracking-tight text-foreground">면접 일정 관리</h1>
+                <p className="text-sm text-muted-foreground">전체 {schedules.length}개의 면접 일정</p>
               </div>
             </div>
             <Button
