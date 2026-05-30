@@ -258,7 +258,7 @@ export function SelfIntroModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card sm:max-w-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto border-border bg-card sm:max-w-2xl" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-foreground">
             <FileText className="h-5 w-5 text-primary" />
@@ -298,8 +298,8 @@ export function SelfIntroModal({
                     ))}
                   </div>
                 )}
-                {showCompanySuggestions && data.company === "" && (
-                  <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-40 overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
+                {showCompanySuggestions && data.company === "" && companies.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-40 overflow-y-auto rounded-lg border border-border bg-white shadow-lg">
                     {companies.map(c => (
                       <button key={c} type="button" className="w-full px-3 py-2 text-left text-sm hover:bg-secondary/50" onMouseDown={() => setData(prev => ({ ...prev, company: c }))}>
                         {c}
