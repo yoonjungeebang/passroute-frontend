@@ -4,6 +4,8 @@ export type PracticeMode = "PRACTICE" | "REAL"
 
 export interface InterviewSetupRequest {
   siId?: number
+  resumeId?: number
+  portfolioId?: number
   companyName: string
   jobPosition: string
   interviewType: InterviewType

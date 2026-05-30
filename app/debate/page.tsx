@@ -63,6 +63,7 @@ export default function DebatePage() {
   const [userInput, setUserInput] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [polling, setPolling] = useState(false)
+  const [pollTrigger, setPollTrigger] = useState(0)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   // Load topics and personas
@@ -83,36 +84,49 @@ export default function DebatePage() {
     load()
   }, [])
 
-  // Poll debate state
+  // Poll debate state with adaptive interval
+  const [pollTimeout, setPollTimeout] = useState(false)
   useEffect(() => {
     if (phase !== "debating" || !sessionId) return
     let cancelled = false
+    let waitStart = 0
 
     async function poll() {
       if (cancelled) return
       setPolling(true)
       try {
         const state = await getDebateState(sessionId!)
-        if (!cancelled) {
-          setDebateState(state)
-          if (state.currentState === "FINISHED") {
-            setPhase("ending")
-          }
+        if (cancelled) return
+        setDebateState(state)
+        if (state.currentState === "FINISHED") {
+          setPhase("ending")
+          return
         }
+        if (state.isWaitingForUser) {
+          // 사용자 턴이면 폴링 중단
+          setPolling(false)
+          waitStart = 0
+          setPollTimeout(false)
+          return
+        }
+        // AI 응답 대기 중 — 경과 시간에 따라 간격 조정
+        if (waitStart === 0) waitStart = Date.now()
+        const elapsed = Date.now() - waitStart
+        if (elapsed >= 180_000) {
+          setPollTimeout(true)
+        }
+        const delay = elapsed >= 30_000 ? 5000 : 1500
+        setTimeout(poll, delay)
       } catch {
-        // ignore polling errors
+        if (!cancelled) setTimeout(poll, 5000)
       } finally {
         if (!cancelled) setPolling(false)
       }
     }
 
     poll()
-    const interval = setInterval(poll, 3000)
-    return () => {
-      cancelled = true
-      clearInterval(interval)
-    }
-  }, [phase, sessionId])
+    return () => { cancelled = true }
+  }, [phase, sessionId, pollTrigger])
 
   // Auto scroll chat
   useEffect(() => {
@@ -161,11 +175,7 @@ export default function DebatePage() {
     try {
       await submitDebateTurn(sessionId, userInput.trim())
       setUserInput("")
-      const state = await getDebateState(sessionId)
-      setDebateState(state)
-      if (state.currentState === "FINISHED") {
-        setPhase("ending")
-      }
+      setPollTrigger(prev => prev + 1)
     } catch {
       // keep input on error
     } finally {
@@ -226,7 +236,7 @@ export default function DebatePage() {
               <ChevronLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold text-foreground">다대다 면접</h1>
+              <h1 className="text-xl font-bold text-foreground">토론 면접</h1>
               <p className="text-sm text-muted-foreground">
                 {phase === "setup" && "토론 설정"}
                 {phase === "debating" && "토론 진행 중"}
@@ -532,6 +542,12 @@ export default function DebatePage() {
                         <span className="text-xs text-muted-foreground">{selectedPersona?.name} 응답 중...</span>
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {pollTimeout && !debateState?.isWaitingForUser && (
+                  <div className="flex justify-center">
+                    <p className="text-xs text-muted-foreground">응답이 지연되고 있습니다. 잠시만 기다려주세요.</p>
                   </div>
                 )}
 
