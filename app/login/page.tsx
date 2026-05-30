@@ -54,116 +54,129 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="w-full max-w-sm space-y-8">
-        {/* Logo */}
-        <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">passroute</h1>
+    <div className="min-h-screen bg-[var(--color-bg)] flex items-center justify-center p-4">
+      <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col md:flex-row min-h-[540px]">
+        {/* Left Panel — Branding */}
+        <div className="hidden md:flex w-1/2 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] p-10 flex-col justify-between relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-[-60px] right-[-60px] w-60 h-60 rounded-full bg-white" />
+            <div className="absolute bottom-[-40px] left-[-40px] w-48 h-48 rounded-full bg-white" />
+            <div className="absolute top-1/2 left-1/3 w-32 h-32 rounded-full bg-white" />
+          </div>
+          <div className="relative z-10">
+            <h2 className="text-2xl font-bold text-white tracking-tight">passroute</h2>
+          </div>
+          <div className="relative z-10">
+            <p className="text-white/60 text-sm mb-2">AI 면접 코칭 플랫폼</p>
+            <p className="text-white text-2xl font-bold leading-snug">
+              면접 준비의<br />새로운 기준
+            </p>
+          </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {inlineError && (
-            <div className="rounded-lg bg-rose-500/10 border border-rose-500/30 px-4 py-3">
-              <p className="text-sm text-rose-400">{inlineError}</p>
-            </div>
-          )}
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">이메일</label>
-            <Input
-              {...register("email")}
-              type="email"
-              placeholder="name@example.com"
-              className="h-11 border-border/50 bg-secondary/30"
-              disabled={isLoading}
-            />
-            {errors.email && (
-              <p className="text-xs text-rose-400">{errors.email.message}</p>
-            )}
+        {/* Right Panel — Form */}
+        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
+          {/* Mobile Logo */}
+          <div className="md:hidden text-center mb-8">
+            <h1 className="text-3xl font-bold tracking-tight text-[var(--color-text)]">passroute</h1>
           </div>
 
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-foreground">비밀번호</label>
-              <Link href="/find-password" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-[var(--color-text)]">로그인</h1>
+            <p className="text-sm text-[var(--color-text-muted)] mt-1">계정 정보를 입력해 주세요</p>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {inlineError && (
+              <div className="rounded-lg bg-rose-500/10 border border-rose-500/30 px-4 py-3">
+                <p className="text-sm text-rose-500">{inlineError}</p>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-[var(--color-text)]">이메일</label>
+              <Input
+                {...register("email")}
+                type="email"
+                placeholder="name@example.com"
+                className="h-11 border-[var(--color-border)] bg-[var(--color-bg)]"
+                disabled={isLoading}
+              />
+              {errors.email && (
+                <p className="text-xs text-rose-500">{errors.email.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-[var(--color-text)]">비밀번호</label>
+              <div className="relative">
+                <Input
+                  {...register("password")}
+                  type={showPassword ? "text" : "password"}
+                  placeholder="비밀번호를 입력하세요"
+                  className="h-11 border-[var(--color-border)] bg-[var(--color-bg)] pr-10"
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-xs text-rose-500">{errors.password.message}</p>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end">
+              <Link href="/find-password" className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors">
                 비밀번호 찾기
               </Link>
             </div>
-            <div className="relative">
-              <Input
-                {...register("password")}
-                type={showPassword ? "text" : "password"}
-                placeholder="비밀번호를 입력하세요"
-                className="h-11 border-border/50 bg-secondary/30 pr-10"
-                disabled={isLoading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="text-xs text-rose-400">{errors.password.message}</p>
-            )}
-          </div>
 
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full h-11 text-sm font-semibold"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                로그인 중...
-              </>
-            ) : (
-              "로그인"
-            )}
-          </Button>
-        </form>
-
-        {/* Divider */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border/50" />
-          </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="bg-background px-3 text-muted-foreground">또는</span>
-          </div>
-        </div>
-
-        {/* Secondary Actions */}
-        <div className="space-y-3">
-          <Link href="/find-email" className="block">
-            <Button variant="outline" className="w-full h-11 text-sm font-medium border-border/50">
-              이메일 찾기
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-11 text-sm font-semibold"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  로그인 중...
+                </>
+              ) : (
+                "로그인"
+              )}
             </Button>
-          </Link>
-          <p className="text-center text-sm text-muted-foreground">
-            계정이 없으신가요?{" "}
-            <Link href="/signup" className="font-medium text-primary hover:underline transition-colors">
-              회원가입
-            </Link>
-          </p>
-        </div>
+          </form>
 
-        {/* Terms */}
-        <p className="text-center text-xs text-muted-foreground/60">
-          로그인함으로써{" "}
-          <Link href="#" className="underline hover:text-muted-foreground transition-colors">
-            이용약관
-          </Link>
-          과{" "}
-          <Link href="#" className="underline hover:text-muted-foreground transition-colors">
-            개인정보처리방침
-          </Link>
-          에 동의합니다
-        </p>
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-[var(--color-border)]" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-white px-3 text-[var(--color-text-muted)]">또는</span>
+            </div>
+          </div>
+
+          {/* Secondary Actions */}
+          <div className="space-y-3">
+            <Link href="/find-email" className="block">
+              <Button variant="outline" className="w-full h-11 text-sm font-medium border-[var(--color-border)]">
+                이메일 찾기
+              </Button>
+            </Link>
+            <p className="text-center text-sm text-[var(--color-text-muted)]">
+              계정이 없으신가요?{" "}
+              <Link href="/signup" className="font-medium text-[var(--color-primary)] hover:underline transition-colors">
+                회원가입
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )
