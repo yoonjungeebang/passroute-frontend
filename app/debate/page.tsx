@@ -52,7 +52,7 @@ export default function DebatePage() {
   const [selectedTopic, setSelectedTopic] = useState<DebateTopic | null>(null)
   const [selectedStance, setSelectedStance] = useState<"PRO" | "CON" | null>(null)
   const [selectedPersona, setSelectedPersona] = useState<DebatePersona | null>(null)
-  const [selectedDifficulty, setSelectedDifficulty] = useState<"low" | "middle" | "high">("middle")
+  const [selectedDifficulty, setSelectedDifficulty] = useState<"EASY" | "NORMAL" | "HARD">("NORMAL")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
@@ -191,9 +191,9 @@ export default function DebatePage() {
   }
 
   const difficultyLabel: Record<string, string> = {
-    low: "쉬움",
-    middle: "보통",
-    high: "어려움",
+    EASY: "쉬움",
+    NORMAL: "보통",
+    HARD: "어려움",
   }
 
   const categoryLabel: Record<string, string> = {
@@ -429,15 +429,15 @@ export default function DebatePage() {
                       <span className="text-sm text-muted-foreground">난이도</span>
                       <Select
                         value={selectedDifficulty}
-                        onValueChange={(v) => setSelectedDifficulty(v as "low" | "middle" | "high")}
+                        onValueChange={(v) => setSelectedDifficulty(v as "EASY" | "NORMAL" | "HARD")}
                       >
                         <SelectTrigger className="w-28 h-8 text-sm">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="low">쉬움</SelectItem>
-                          <SelectItem value="middle">보통</SelectItem>
-                          <SelectItem value="high">어려움</SelectItem>
+                          <SelectItem value="EASY">쉬움</SelectItem>
+                          <SelectItem value="NORMAL">보통</SelectItem>
+                          <SelectItem value="HARD">어려움</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -546,7 +546,7 @@ export default function DebatePage() {
                     onChange={(e) => setUserInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="의견을 입력하세요..."
-                    className="min-h-[48px] max-h-32 resize-none border-border/50 bg-secondary/30"
+                    className="min-h-12 max-h-32 resize-none border-border/50 bg-secondary/30"
                     disabled={submitting}
                   />
                   <Button
