@@ -126,7 +126,7 @@ export function DocumentAssets() {
 
   return (
     <Card className="border-border bg-white rounded-xl">
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-0">
         <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
           <FolderOpen className="h-4.5 w-4.5 text-muted-foreground" />
           자료 관리

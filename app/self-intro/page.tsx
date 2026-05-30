@@ -87,7 +87,7 @@ export default function SelfIntroPage() {
 
           {/* Self-intro List */}
           <Card className="border-border bg-white rounded-xl">
-            <CardHeader className="pb-4">
+            <CardHeader className="pb-0">
               <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
                 <PenTool className="h-4.5 w-4.5 text-primary" />
                 전체 자기소개서

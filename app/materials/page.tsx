@@ -16,7 +16,7 @@ export default function MaterialsPage() {
             <p className="text-sm text-muted-foreground mt-1">이력서와 포트폴리오 자료를 관리하세요.</p>
           </div>
         </div>
-        <div className="space-y-6 px-4 py-4 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-6 lg:px-8">
           <DocumentAssets />
         </div>
       </main>

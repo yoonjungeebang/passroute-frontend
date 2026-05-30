@@ -471,7 +471,7 @@ export default function SchedulePage() {
         <div className="flex-1 overflow-auto px-4 py-4 sm:px-6 lg:px-8">
           <Card className="border-border bg-white rounded-xl">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
                 <CalendarIcon className="h-4 w-4 text-primary" />
                 {selectedDate
                   ? `${selectedDate.getMonth() + 1}월 ${selectedDate.getDate()}일 일정`
