@@ -106,148 +106,142 @@ export default function SettingsPage() {
       <Sidebar />
       <main className="w-full overflow-auto lg:ml-64">
         <MobileHeader />
-        <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <Settings className="h-5 w-5 text-primary" />
+        <div className="sticky top-14 z-30 border-b border-border/30 bg-background/95 backdrop-blur-sm lg:top-0">
+          <div className="px-4 pt-8 pb-5 sm:px-6 lg:px-8">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">설정</h1>
+            <p className="text-sm text-muted-foreground mt-1">프로필 정보를 관리하세요</p>
+          </div>
+        </div>
+        <div className="px-4 py-4 sm:px-6 lg:px-8">
+          {/* Profile Card */}
+          <div className="rounded-xl border border-border bg-white p-6 mb-6 shadow-sm">
+            {/* User Info */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white text-lg font-semibold">
+                {profile?.name?.slice(0, 2) ?? "?"}
               </div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">설정</h1>
+              <div className="flex-1 min-w-0">
+                <p className="text-lg font-semibold text-foreground">{profile?.name ?? "—"}</p>
+                <p className="text-sm text-muted-foreground">{profile?.email ?? "—"}</p>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">프로필 정보를 관리하세요</p>
+
+            {/* Basic Info Grid */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="rounded-xl bg-muted/40 px-4 py-3">
+                <p className="text-xs text-muted-foreground mb-0.5">전화번호</p>
+                <p className="text-sm font-medium text-foreground">
+                  {profile?.phone ? profile.phone.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3") : "—"}
+                </p>
+              </div>
+              <div className="rounded-xl bg-muted/40 px-4 py-3">
+                <p className="text-xs text-muted-foreground mb-0.5">가입일</p>
+                <p className="text-sm font-medium text-foreground">
+                  {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString("ko-KR") : "—"}
+                </p>
+              </div>
+            </div>
+
+            <hr className="border-border/50 mb-6" />
+
+            {/* Experience Years */}
+            <div className="space-y-2 mb-6">
+              <label className="text-sm font-medium text-foreground">경력</label>
+              <select
+                value={experienceYears}
+                onChange={(e) => setExperienceYears(Number(e.target.value))}
+                className="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-foreground appearance-none cursor-pointer hover:border-primary/30 focus:border-primary focus:outline-none transition-colors"
+              >
+                {Object.entries(EXPERIENCE_YEARS).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Preferred Job Types */}
+            <div className="space-y-2 mb-6">
+              <label className="text-sm font-medium text-foreground">
+                관심 직군 <span className="text-xs text-muted-foreground">(최대 5개)</span>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(JOB_TYPES).map(([value, label]) => (
+                  <button
+                    key={value}
+                    onClick={() => handleToggleJobType(value)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+                      preferredJobTypes.includes(value)
+                        ? "bg-primary/10 border-primary text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/30"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Preferred Companies */}
+            <div className="space-y-2 mb-6">
+              <label className="text-sm font-medium text-foreground">
+                관심 기업 <span className="text-xs text-muted-foreground">(최대 10개)</span>
+              </label>
+              {preferredCompanies.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {preferredCompanies.map((company) => (
+                    <span
+                      key={company}
+                      className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                    >
+                      {company}
+                      <button onClick={() => handleRemoveCompany(company)} className="hover:text-primary/70">
+                        &times;
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={companyInput}
+                  onChange={(e) => setCompanyInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddCompany()}
+                  placeholder="기업명 입력 후 Enter"
+                  className="flex-1 rounded-xl border border-border bg-white px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none transition-colors"
+                />
+                <Button size="sm" variant="outline" className="rounded-xl" onClick={handleAddCompany}>추가</Button>
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="w-full h-11 text-sm font-semibold"
+            >
+              {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              {saving ? "저장 중..." : "변경사항 저장"}
+            </Button>
           </div>
 
-          {/* Profile Section */}
-          <section className="mb-8">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">프로필</h2>
-            <div className="space-y-6 rounded-xl border border-border bg-white p-6">
-              {/* User Info */}
-              <div className="flex items-center gap-4 pb-4 border-b border-border/50">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white text-lg font-semibold">
-                  {profile?.name?.slice(0, 2) ?? "?"}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-lg font-semibold text-foreground">{profile?.name ?? "—"}</p>
-                  <p className="text-sm text-muted-foreground">{profile?.email ?? "—"}</p>
-                </div>
+          {/* Danger Zone */}
+          <div className="rounded-xl border border-red-200 bg-red-50/50 p-6 mb-12">
+            <h2 className="text-sm font-semibold text-red-900 mb-3">위험 영역</h2>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-red-900">계정 탈퇴</p>
+                <p className="text-xs text-red-700/70">모든 데이터가 영구 삭제됩니다</p>
               </div>
-
-              {/* Basic Info Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-lg bg-secondary/30 px-4 py-3">
-                  <p className="text-xs text-muted-foreground mb-0.5">전화번호</p>
-                  <p className="text-sm font-medium text-foreground">
-                    {profile?.phone ? profile.phone.replace(/(\d{3})(\d{4})(\d{4})/, "$1-$2-$3") : "—"}
-                  </p>
-                </div>
-                <div className="rounded-lg bg-secondary/30 px-4 py-3">
-                  <p className="text-xs text-muted-foreground mb-0.5">가입일</p>
-                  <p className="text-sm font-medium text-foreground">
-                    {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString("ko-KR") : "—"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Experience Years */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">경력</label>
-                <select
-                  value={experienceYears}
-                  onChange={(e) => setExperienceYears(Number(e.target.value))}
-                  className="w-full rounded-lg border border-border bg-white px-4 py-2.5 text-foreground appearance-none cursor-pointer hover:border-primary/30 focus:border-primary focus:outline-none"
-                >
-                  {Object.entries(EXPERIENCE_YEARS).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Preferred Job Types */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  관심 직군 <span className="text-xs text-muted-foreground">(최대 5개)</span>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(JOB_TYPES).map(([value, label]) => (
-                    <button
-                      key={value}
-                      onClick={() => handleToggleJobType(value)}
-                      className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                        preferredJobTypes.includes(value)
-                          ? "bg-primary text-white"
-                          : "bg-secondary text-muted-foreground hover:bg-secondary/80"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Preferred Companies */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">
-                  관심 기업 <span className="text-xs text-muted-foreground">(최대 10개)</span>
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={companyInput}
-                    onChange={(e) => setCompanyInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleAddCompany()}
-                    placeholder="기업명 입력 후 Enter"
-                    className="flex-1 rounded-lg border border-border bg-white px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
-                  />
-                  <Button size="sm" variant="outline" onClick={handleAddCompany}>추가</Button>
-                </div>
-                {preferredCompanies.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {preferredCompanies.map((company) => (
-                      <span
-                        key={company}
-                        className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs text-foreground"
-                      >
-                        {company}
-                        <button onClick={() => handleRemoveCompany(company)} className="text-muted-foreground hover:text-foreground">
-                          &times;
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Save Button */}
               <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="w-full bg-primary text-white hover:opacity-90"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowWithdrawDialog(true)}
+                className="border-red-200 text-red-600 hover:bg-red-100 hover:text-red-700"
               >
-                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                {saving ? "저장 중..." : "변경사항 저장"}
+                탈퇴하기
               </Button>
             </div>
-          </section>
-
-          {/* Danger Zone */}
-          <section className="mb-12">
-            <div className="space-y-3 rounded-xl border border-red-200 bg-red-50 p-6">
-              <h2 className="text-sm font-semibold text-red-900">위험 영역</h2>
-              <div className="flex items-center justify-between pt-2">
-                <div>
-                  <p className="text-sm font-medium text-red-900">계정 탈퇴</p>
-                  <p className="text-xs text-red-700">모든 데이터가 영구 삭제됩니다</p>
-                </div>
-                <button
-                  onClick={() => setShowWithdrawDialog(true)}
-                  className="text-sm font-medium text-red-600 hover:text-red-700"
-                >
-                  탈퇴하기
-                </button>
-              </div>
-            </div>
-          </section>
+          </div>
         </div>
       </main>
 

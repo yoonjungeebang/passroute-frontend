@@ -143,21 +143,13 @@ export default function ReportsPage() {
       <Sidebar />
       <main className="w-full overflow-auto lg:ml-64">
         <MobileHeader />
-        <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-              <Link href="/dashboard" className="flex items-center gap-1 hover:text-foreground transition-colors">
-                <ChevronLeft className="h-4 w-4" />
-                돌아가기
-              </Link>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">분석 리포트</h1>
-              <p className="text-sm text-muted-foreground mt-1">AI가 분석한 면접 성과와 개선점을 확인하세요</p>
-            </div>
+        <div className="sticky top-14 z-30 border-b border-border/30 bg-background/95 backdrop-blur-sm lg:top-0">
+          <div className="px-4 pt-8 pb-5 sm:px-6 lg:px-8">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">분석 리포트</h1>
+            <p className="text-sm text-muted-foreground mt-1">AI가 분석한 면접 성과와 개선점을 확인하세요</p>
           </div>
-
+        </div>
+        <div className="space-y-8 px-4 py-4 sm:px-6 lg:px-8">
           {/* Quick Stats */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[

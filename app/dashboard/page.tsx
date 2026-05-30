@@ -40,7 +40,7 @@ function DashboardContent() {
       <MobileHeader />
 
       <main className="pt-14 lg:pl-64 lg:pt-0">
-        <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <div className="px-4 py-6 sm:px-6 lg:px-8">
           <div className="animate-stagger space-y-6 pb-24">
             <HeroSection onStartInterview={handleStartInterview} />
             <UpcomingSchedule />

@@ -311,18 +311,11 @@ export default function SchedulePage() {
 
       <main className="flex flex-1 flex-col pt-14 lg:pl-64 lg:pt-0">
         {/* Header */}
-        <div className="sticky top-14 z-30 border-b border-border/50 bg-card/95 backdrop-blur-sm lg:top-0">
-          <div className="flex items-center justify-between p-4 lg:p-6">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                <Link href="/dashboard">
-                  <ChevronLeft className="h-4 w-4" />
-                </Link>
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">면접 일정 관리</h1>
-                <p className="text-sm text-muted-foreground">전체 {schedules.length}개의 면접 일정</p>
-              </div>
+        <div className="sticky top-14 z-30 border-b border-border/30 bg-background/95 backdrop-blur-sm lg:top-0">
+          <div className="flex items-center justify-between px-4 pt-8 pb-5 sm:px-6 lg:px-8">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">면접 일정 관리</h1>
+              <p className="text-sm text-muted-foreground mt-1">전체 {schedules.length}개의 면접 일정</p>
             </div>
             <Button
               onClick={() => {
@@ -346,8 +339,8 @@ export default function SchedulePage() {
         )}
 
         {/* Calendar Card */}
-        <div className="bg-background px-4 pb-2 pt-4 lg:px-6">
-          <Card className="border-border/50 bg-card shadow-lg shadow-black/5">
+        <div className="bg-background px-4 pb-2 pt-4 sm:px-6 lg:px-8">
+          <Card className="border-border bg-white rounded-xl">
             <CardHeader className="pb-3 pt-4">
               <div className="flex items-center justify-between">
                 <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={handlePrevMonth}>
@@ -475,8 +468,8 @@ export default function SchedulePage() {
         </div>
 
         {/* Schedule List */}
-        <div className="flex-1 overflow-auto p-4 lg:p-6">
-          <Card className="border-border/50 bg-card">
+        <div className="flex-1 overflow-auto px-4 py-4 sm:px-6 lg:px-8">
+          <Card className="border-border bg-white rounded-xl">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <CalendarIcon className="h-4 w-4 text-primary" />

@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
+
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { MobileHeader } from "@/components/dashboard/mobile-header"
 import { SelfIntroModal } from "@/components/dashboard/self-intro-modal"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { PenTool, Plus, ChevronLeft, Pencil, Play, FileText, Briefcase, Loader2 } from "lucide-react"
+import { PenTool, Plus, Pencil, Play, FileText, Briefcase, Loader2 } from "lucide-react"
 import { getSelfIntroList, type SelfIntroResponse } from "@/lib/api/self-intro"
 
 function formatDate(dateStr: string): string {
@@ -67,19 +67,12 @@ export default function SelfIntroPage() {
       <MobileHeader />
 
       <main className="pt-14 lg:pl-64 lg:pt-0">
-        <div className="p-4 lg:p-8">
-          {/* Header */}
-          <div className="mb-6 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                <Link href="/dashboard">
-                  <ChevronLeft className="h-4 w-4" />
-                </Link>
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">자기소개서</h1>
-                <p className="text-sm text-muted-foreground">전체 {selfIntros.length}개의 자기소개서</p>
-              </div>
+        {/* Sticky Header */}
+        <div className="sticky top-14 z-30 border-b border-border/30 bg-background/95 backdrop-blur-sm lg:top-0">
+          <div className="flex items-center justify-between px-4 pt-8 pb-5 sm:px-6 lg:px-8">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">자기소개서</h1>
+              <p className="text-sm text-muted-foreground mt-1">전체 {selfIntros.length}개의 자기소개서</p>
             </div>
             <Button
               className="gap-1.5 bg-primary text-white hover:opacity-90"
@@ -89,9 +82,11 @@ export default function SelfIntroPage() {
               새 자기소개서
             </Button>
           </div>
+        </div>
+        <div className="px-4 py-6 sm:px-6 lg:px-8">
 
           {/* Self-intro List */}
-          <Card className="border-border/50 bg-card">
+          <Card className="border-border bg-white rounded-xl">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
                 <PenTool className="h-4.5 w-4.5 text-primary" />
