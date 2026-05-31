@@ -23,11 +23,12 @@ export async function startInterview(roomId: number): Promise<InterviewStartResp
 }
 
 export async function getSessionQuestions(sessionId: number): Promise<SessionQuestion[]> {
-  return apiFetch<SessionQuestion[]>(
+  const result = await apiFetch<{ questions: SessionQuestion[] }>(
     `/interview/sessions/${sessionId}/questions`,
     { method: "GET" },
     "질문 목록 조회에 실패했습니다"
   )
+  return result.questions
 }
 
 export async function submitAnswer(

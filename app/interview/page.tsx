@@ -339,6 +339,7 @@ function LiveInterviewScreen({
   }
 
   const handleFinishAnswer = async () => {
+    if (!currentQuestion) return
     setAnswerState("answered")
     try {
       const result: AnswerProgressResponse = await submitAnswer(sessionId, {
@@ -530,7 +531,7 @@ function LiveInterviewScreen({
                   )}
                 </div>
                 <p className="text-base font-medium leading-relaxed text-foreground">
-                  {mode === "practice" ? currentQuestion.questionText : "질문이 재생되었습니다. 답변을 시작하세요."}
+                  {mode === "practice" ? currentQuestion?.questionText ?? "질문을 불러오는 중..." : "질문이 재생되었습니다. 답변을 시작하세요."}
                 </p>
               </div>
               <div className="flex flex-col items-center gap-1 rounded-lg border border-border bg-background px-4 py-2">
