@@ -45,7 +45,7 @@ export function useFaceAnalysis({ sessionId, questionId, videoRef, active }: Use
       return
     }
 
-    const aiServerUrl = process.env.NEXT_PUBLIC_AI_SERVER_URL
+    const aiServerUrl = process.env.NEXT_PUBLIC_AI_WS_URL
     const ws = new WebSocket(`${aiServerUrl}/ws/face/${sessionId}/${questionId}`)
     wsRef.current = ws
 

@@ -59,7 +59,7 @@ export function useSTT({ sessionId, questionId, stream, active }: UseSTTParams):
     }
 
     let cancelled = false
-    const aiServerUrl = process.env.NEXT_PUBLIC_AI_SERVER_URL
+    const aiServerUrl = process.env.NEXT_PUBLIC_AI_WS_URL
 
     async function start() {
       try {
