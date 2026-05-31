@@ -20,7 +20,11 @@ function formatDate(dateStr: string): string {
   return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`
 }
 
-export function SupportMaterials() {
+interface SupportMaterialsProps {
+  onStartInterview?: (introId: number) => void
+}
+
+export function SupportMaterials({ onStartInterview }: SupportMaterialsProps) {
   const router = useRouter()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -130,6 +134,7 @@ export function SupportMaterials() {
                     <Button
                       size="sm"
                       className="flex-1 gap-1 bg-[var(--color-primary)] text-xs text-white hover:opacity-90"
+                      onClick={() => onStartInterview?.(intro.id)}
                     >
                       <Play className="h-3 w-3" />
                       면접 시작

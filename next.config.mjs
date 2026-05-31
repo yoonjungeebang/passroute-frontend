@@ -17,6 +17,7 @@ const nextConfig = {
         { source: "/debate/topics", destination: `${backend}/api/debate/topics`, has: [{ type: "header", key: "authorization" }] },
         { source: "/debate/personas", destination: `${backend}/api/debate/personas`, has: [{ type: "header", key: "authorization" }] },
         { source: "/debate/sessions", destination: `${backend}/api/debate/sessions`, has: [{ type: "header", key: "authorization" }] },
+        { source: "/documents", destination: `${backend}/api/documents`, has: [{ type: "header", key: "authorization" }] },
       ],
       afterFiles: [
         // /api/* 는 이미 /api 접두사 포함 — 그대로 전달

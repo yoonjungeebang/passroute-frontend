@@ -14,15 +14,22 @@ import { HeroSection } from "@/components/dashboard/hero-section"
 function DashboardContent() {
   const searchParams = useSearchParams()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedIntroId, setSelectedIntroId] = useState<number | null>(null)
 
   const startInterviewId = searchParams?.get("startInterview")
-  const prefillData = startInterviewId ? {
+  const prefillData = (startInterviewId ? {
     introId: Number(startInterviewId),
     stage: "technical",
     mode: "one-on-one",
     practiceMode: "practice" as const,
     personas: ["TEAM_LEAD"],
-  } : null
+  } : selectedIntroId ? {
+    introId: selectedIntroId,
+    stage: "technical",
+    mode: "one-on-one",
+    practiceMode: "practice" as const,
+    personas: ["TEAM_LEAD"],
+  } : null)
 
   useEffect(() => {
     if (startInterviewId) {
@@ -31,6 +38,12 @@ function DashboardContent() {
   }, [startInterviewId])
 
   const handleStartInterview = () => {
+    setSelectedIntroId(null)
+    setIsModalOpen(true)
+  }
+
+  const handleStartInterviewWithIntro = (introId: number) => {
+    setSelectedIntroId(introId)
     setIsModalOpen(true)
   }
 
@@ -44,7 +57,7 @@ function DashboardContent() {
           <div className="animate-stagger space-y-6 pb-24">
             <HeroSection onStartInterview={handleStartInterview} />
             <UpcomingSchedule />
-            <SupportMaterials />
+            <SupportMaterials onStartInterview={handleStartInterviewWithIntro} />
             <DocumentAssets />
             <InterviewHistory />
           </div>
