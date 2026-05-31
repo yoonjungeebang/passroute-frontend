@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import {
   Camera,
@@ -114,10 +113,10 @@ function PreCheckScreen({
 
       {/* Main Content */}
       <main className="flex flex-1 items-center justify-center p-6">
-        <div className="grid w-full max-w-5xl gap-8 lg:grid-cols-2">
-          {/* Left: Webcam Preview */}
-          <div className="space-y-4">
-            <div className="relative aspect-video overflow-hidden rounded-2xl border border-border/50 bg-secondary/50">
+        <div className="flex w-full max-w-3xl flex-col gap-6">
+          {/* Top: Webcam Preview */}
+          <div className="space-y-3">
+            <div className="relative mx-auto aspect-video max-w-2xl overflow-hidden rounded-2xl border border-border/50 bg-secondary/50">
               {stream ? (
                 <>
                   <video
@@ -130,11 +129,9 @@ function PreCheckScreen({
                   {/* Face guide overlay */}
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                     <svg width="180" height="240" viewBox="0 0 180 240" fill="none" className="opacity-60">
-                      {/* Head oval */}
                       <ellipse cx="90" cy="95" rx="70" ry="85"
                         stroke={deviceStatus.faceDetected === "detected" ? "#22c55e" : "#ef4444"}
                         strokeWidth="2" strokeDasharray="8 4" fill="none" />
-                      {/* Shoulders */}
                       <path d="M20 240 Q20 190 90 180 Q160 190 160 240"
                         stroke={deviceStatus.faceDetected === "detected" ? "#22c55e" : "#ef4444"}
                         strokeWidth="2" strokeDasharray="8 4" fill="none" />
@@ -151,7 +148,6 @@ function PreCheckScreen({
                   </div>
                 </div>
               )}
-              {/* Recording indicator */}
               <div className="absolute left-4 top-4 flex items-center gap-2 rounded-full bg-background/80 px-3 py-1.5 backdrop-blur-sm">
                 <div className={cn("h-2 w-2 rounded-full", stream ? "animate-pulse bg-rose-500" : "bg-muted-foreground")} />
                 <span className="text-xs font-medium text-foreground">{stream ? "LIVE" : "OFF"}</span>
@@ -162,72 +158,62 @@ function PreCheckScreen({
             </p>
           </div>
 
-          {/* Right: Status Panel */}
-          <div className="space-y-6">
-            <Card className="border-border/50 bg-card">
-              <CardContent className="p-6">
-                <h2 className="mb-4 text-base font-semibold text-foreground">시스템 상태</h2>
-                <div className="space-y-3">
-                  {statusItems.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between rounded-xl border border-border/30 bg-secondary/30 p-3"
+          {/* Bottom: Status Panel */}
+          <div className="space-y-4">
+            {/* Status items in a row */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {statusItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex flex-col items-center gap-2 rounded-xl border border-border/30 bg-card p-4"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <item.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="text-xs font-medium text-foreground">{item.label}</span>
+                  <div className="flex items-center gap-1.5">
+                    {getStatusIcon(item.status)}
+                    <span
+                      className={cn(
+                        "text-xs font-medium",
+                        item.status === "connected" || item.status === "detected"
+                          ? "text-emerald-400"
+                          : item.status === "error" || item.status === "not-detected"
+                          ? "text-rose-400"
+                          : "text-muted-foreground"
+                      )}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                          <item.icon className="h-4 w-4 text-primary" />
-                        </div>
-                        <span className="text-sm font-medium text-foreground">{item.label}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(item.status)}
-                        <span
-                          className={cn(
-                            "text-sm font-medium",
-                            item.status === "connected" || item.status === "detected"
-                              ? "text-emerald-400"
-                              : item.status === "error" || item.status === "not-detected"
-                              ? "text-rose-400"
-                              : "text-muted-foreground"
-                          )}
-                        >
-                          {getStatusText(item.status)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                      {getStatusText(item.status)}
+                    </span>
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              ))}
+            </div>
 
             {/* Checklist Summary */}
-            <Card className="border-border/50 bg-card">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  {allPassed ? (
-                    <>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20">
-                        <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground">모든 점검이 완료되었습니다</p>
-                        <p className="text-sm text-muted-foreground">면접을 시작할 준비가 되었어요</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/20">
-                        <AlertCircle className="h-5 w-5 text-amber-400" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground">점검이 진행 중입니다</p>
-                        <p className="text-sm text-muted-foreground">잠시만 기다려 주세요</p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex items-center justify-center gap-3 rounded-xl border border-border/30 bg-card p-4">
+              {allPassed ? (
+                <>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">모든 점검이 완료되었습니다</p>
+                    <p className="text-sm text-muted-foreground">면접을 시작할 준비가 되었어요</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/20">
+                    <AlertCircle className="h-5 w-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">점검이 진행 중입니다</p>
+                    <p className="text-sm text-muted-foreground">카메라 앞에서 말씀해 주세요</p>
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* Action Buttons */}
             <div className="flex gap-3">
@@ -356,7 +342,7 @@ function LiveInterviewScreen({
   }, [transcript])
 
   // Face analysis hook - always active during interview
-  const { gazeRatio, gazeOn, blinkCount, ear, faceDetected, feedback: faceFeedback } = useFaceAnalysis({
+  const { gazeRatio, blinkCount, ear, faceDetected, feedback: faceFeedback } = useFaceAnalysis({
     sessionId,
     questionId: currentQuestion?.questionId ?? 0,
     videoRef: userVideoRef,
@@ -736,14 +722,54 @@ function InterviewPageInner() {
         setDeviceStatus(prev => ({
           ...prev,
           camera: videoTrack ? "connected" : "error",
-          faceDetected: videoTrack ? "detected" : "not-detected",
         }))
 
         // Microphone check
         const audioTrack = stream.getAudioTracks()[0]
         setDeviceStatus(prev => ({ ...prev, microphone: audioTrack ? "connected" : "error" }))
 
-        // Audio input detection
+        // Face detection via canvas frame analysis
+        if (videoTrack) {
+          const video = document.createElement("video")
+          video.srcObject = stream
+          video.muted = true
+          video.playsInline = true
+          video.play()
+
+          const canvas = document.createElement("canvas")
+          canvas.width = 160
+          canvas.height = 120
+          const ctx = canvas.getContext("2d")!
+
+          const checkFace = () => {
+            if (cancelled) return
+            if (video.readyState >= 2) {
+              ctx.drawImage(video, 0, 0, 160, 120)
+              const imageData = ctx.getImageData(40, 20, 80, 80) // center region
+              const pixels = imageData.data
+              let nonBlack = 0
+              let skinTone = 0
+              for (let i = 0; i < pixels.length; i += 4) {
+                const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2]
+                if (r > 30 || g > 30 || b > 30) nonBlack++
+                // Rough skin tone detection
+                if (r > 80 && g > 50 && b > 30 && r > g && (r - g) > 10) skinTone++
+              }
+              const totalPixels = pixels.length / 4
+              if (nonBlack / totalPixels > 0.5 && skinTone / totalPixels > 0.1) {
+                setDeviceStatus(prev => ({ ...prev, faceDetected: "detected" }))
+              } else {
+                setDeviceStatus(prev => ({ ...prev, faceDetected: "not-detected" }))
+                requestAnimationFrame(checkFace)
+              }
+            } else {
+              requestAnimationFrame(checkFace)
+            }
+          }
+          checkFace()
+        }
+
+        // Audio input detection - waits for actual sound
         if (audioTrack) {
           audioCtx = new AudioContext()
           const source = audioCtx.createMediaStreamSource(stream)
@@ -752,26 +778,17 @@ function InterviewPageInner() {
           source.connect(analyser)
           const data = new Uint8Array(analyser.frequencyBinCount)
 
-          let detected = false
           const checkAudio = () => {
-            if (cancelled || detected) return
+            if (cancelled) return
             analyser.getByteFrequencyData(data)
             const avg = data.reduce((a, b) => a + b, 0) / data.length
             if (avg > 5) {
-              detected = true
               setDeviceStatus(prev => ({ ...prev, audioInput: "detected" }))
             } else {
               requestAnimationFrame(checkAudio)
             }
           }
           checkAudio()
-
-          // 3초 후에도 음성이 감지되지 않으면 일단 통과 처리
-          setTimeout(() => {
-            if (!detected && !cancelled) {
-              setDeviceStatus(prev => ({ ...prev, audioInput: "detected" }))
-            }
-          }, 3000)
         }
       } catch {
         if (cancelled) return
@@ -812,18 +829,73 @@ function InterviewPageInner() {
       audioInput: "checking",
     })
 
-    // 재시도
+    // 재시도 - 실제 디바이스 체크를 다시 트리거
+    // useEffect의 dependency를 이용할 수 없으므로 페이지를 리마운트
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(stream => {
         setMediaStream(stream)
         const videoTrack = stream.getVideoTracks()[0]
         const audioTrack = stream.getAudioTracks()[0]
-        setDeviceStatus({
+        setDeviceStatus(prev => ({
+          ...prev,
           camera: videoTrack ? "connected" : "error",
           microphone: audioTrack ? "connected" : "error",
-          faceDetected: videoTrack ? "detected" : "not-detected",
-          audioInput: audioTrack ? "detected" : "not-detected",
-        })
+        }))
+
+        // Face detection
+        if (videoTrack) {
+          const video = document.createElement("video")
+          video.srcObject = stream
+          video.muted = true
+          video.playsInline = true
+          video.play()
+          const canvas = document.createElement("canvas")
+          canvas.width = 160
+          canvas.height = 120
+          const ctx = canvas.getContext("2d")!
+          const checkFace = () => {
+            if (video.readyState >= 2) {
+              ctx.drawImage(video, 0, 0, 160, 120)
+              const imageData = ctx.getImageData(40, 20, 80, 80)
+              const pixels = imageData.data
+              let nonBlack = 0, skinTone = 0
+              for (let i = 0; i < pixels.length; i += 4) {
+                const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2]
+                if (r > 30 || g > 30 || b > 30) nonBlack++
+                if (r > 80 && g > 50 && b > 30 && r > g && (r - g) > 10) skinTone++
+              }
+              const total = pixels.length / 4
+              setDeviceStatus(prev => ({
+                ...prev,
+                faceDetected: (nonBlack / total > 0.5 && skinTone / total > 0.1) ? "detected" : "not-detected",
+              }))
+            } else {
+              requestAnimationFrame(checkFace)
+            }
+          }
+          checkFace()
+        }
+
+        // Audio detection
+        if (audioTrack) {
+          const audioCtx = new AudioContext()
+          const source = audioCtx.createMediaStreamSource(stream)
+          const analyser = audioCtx.createAnalyser()
+          analyser.fftSize = 256
+          source.connect(analyser)
+          const data = new Uint8Array(analyser.frequencyBinCount)
+          const checkAudio = () => {
+            analyser.getByteFrequencyData(data)
+            const avg = data.reduce((a, b) => a + b, 0) / data.length
+            if (avg > 5) {
+              setDeviceStatus(prev => ({ ...prev, audioInput: "detected" }))
+              audioCtx.close()
+            } else {
+              requestAnimationFrame(checkAudio)
+            }
+          }
+          checkAudio()
+        }
       })
       .catch(() => {
         setDeviceStatus({
