@@ -51,4 +51,10 @@ export interface AnswerProgressResponse {
   followUpQuestionId?: number
   followUpQuestionText?: string
   lastQuestion: boolean
+  evaluation?: {
+    structure?: number
+    logic?: number
+    specificity?: number
+    jobFit?: number
+  }
 }

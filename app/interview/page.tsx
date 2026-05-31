@@ -119,13 +119,28 @@ function PreCheckScreen({
           <div className="space-y-4">
             <div className="relative aspect-video overflow-hidden rounded-2xl border border-border/50 bg-secondary/50">
               {stream ? (
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="h-full w-full object-cover"
-                />
+                <>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="h-full w-full object-cover"
+                  />
+                  {/* Face guide overlay */}
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                    <svg width="180" height="240" viewBox="0 0 180 240" fill="none" className="opacity-60">
+                      {/* Head oval */}
+                      <ellipse cx="90" cy="95" rx="70" ry="85"
+                        stroke={deviceStatus.faceDetected === "detected" ? "#22c55e" : "#ef4444"}
+                        strokeWidth="2" strokeDasharray="8 4" fill="none" />
+                      {/* Shoulders */}
+                      <path d="M20 240 Q20 190 90 180 Q160 190 160 240"
+                        stroke={deviceStatus.faceDetected === "detected" ? "#22c55e" : "#ef4444"}
+                        strokeWidth="2" strokeDasharray="8 4" fill="none" />
+                    </svg>
+                  </div>
+                </>
               ) : (
                 <div className="flex h-full items-center justify-center">
                   <div className="relative">
@@ -320,6 +335,7 @@ function LiveInterviewScreen({
   const [isPaused, setIsPaused] = useState(false)
   const [reAnswerCount, setReAnswerCount] = useState(0)
   const [followUpQuestion, setFollowUpQuestion] = useState<{ id: number; text: string } | null>(null)
+  const [verbalScores, setVerbalScores] = useState({ structure: 0, logic: 0, specificity: 0, jobFit: 0 })
 
   const currentQuestion = followUpQuestion
     ? { questionId: followUpQuestion.id, questionText: followUpQuestion.text, questionOrder: -1 }
@@ -339,12 +355,12 @@ function LiveInterviewScreen({
     if (transcript) lastTranscriptRef.current = transcript
   }, [transcript])
 
-  // Face analysis hook
-  const { gazeRatio, faceDetected, feedback: faceFeedback } = useFaceAnalysis({
+  // Face analysis hook - always active during interview
+  const { gazeRatio, gazeOn, blinkCount, ear, faceDetected, feedback: faceFeedback } = useFaceAnalysis({
     sessionId,
     questionId: currentQuestion?.questionId ?? 0,
     videoRef: userVideoRef,
-    active: answerState === "answering" && !isPaused,
+    active: !isPaused,
   })
 
   // Timer effects
@@ -381,6 +397,14 @@ function LiveInterviewScreen({
         answerText: lastTranscriptRef.current || transcript,
         voiceData: wpm > 0 ? { filler_word_count: fillerCount, wpm } : undefined,
       })
+      if (result.evaluation) {
+        setVerbalScores({
+          structure: result.evaluation.structure ?? 0,
+          logic: result.evaluation.logic ?? 0,
+          specificity: result.evaluation.specificity ?? 0,
+          jobFit: result.evaluation.jobFit ?? 0,
+        })
+      }
       if (result.hasFollowUp && result.followUpQuestionId && result.followUpQuestionText) {
         setFollowUpQuestion({ id: result.followUpQuestionId, text: result.followUpQuestionText })
       } else {
@@ -419,18 +443,20 @@ function LiveInterviewScreen({
     handleNextQuestion()
   }
 
+  // ear(Eye Aspect Ratio) 0.2~0.4 범위를 0~100으로 매핑 → 표정 자연스러움 근사
+  const expressionScore = faceDetected ? Math.min(100, Math.round(Math.max(0, (ear - 0.15) / 0.25) * 100)) : 0
   const visionMetrics = [
     { label: "시선 안정성", value: Math.round(gazeRatio) },
-    { label: "표정 자연스러움", value: faceDetected ? 80 : 0 },
-    { label: "자세 안정성", value: faceDetected ? 75 : 0 },
-    { label: "제스처 적절성", value: faceDetected ? 70 : 0 },
+    { label: "표정 자연스러움", value: expressionScore },
+    { label: "자세 안정성", value: faceDetected ? Math.round(gazeRatio * 0.9) : 0 },
+    { label: "깜빡임 횟수", value: blinkCount },
   ]
 
   const verbalMetrics = [
-    { label: "답변 구조", value: 0 },
-    { label: "논리적 흐름", value: 0 },
-    { label: "구체성", value: 0 },
-    { label: "직무 적합도", value: 0 },
+    { label: "답변 구조", value: verbalScores.structure },
+    { label: "논리적 흐름", value: verbalScores.logic },
+    { label: "구체성", value: verbalScores.specificity },
+    { label: "직무 적합도", value: verbalScores.jobFit },
   ]
 
   return (
@@ -467,7 +493,17 @@ function LiveInterviewScreen({
             <AnalysisPanel title="Vision Analysis">
               <div className="mb-4 flex justify-center">
                 <div className="relative h-20 w-20 overflow-hidden rounded-lg border border-border bg-background">
-                  <User className="absolute inset-0 m-auto h-10 w-10 text-muted-foreground/30" />
+                  {stream ? (
+                    <video
+                      autoPlay
+                      playsInline
+                      muted
+                      className="h-full w-full object-cover"
+                      ref={(el) => { if (el && stream) el.srcObject = stream }}
+                    />
+                  ) : (
+                    <User className="absolute inset-0 m-auto h-10 w-10 text-muted-foreground/30" />
+                  )}
                   <div className="absolute inset-1 rounded-md border border-dashed border-primary/30" />
                 </div>
               </div>

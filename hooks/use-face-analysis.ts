@@ -11,14 +11,18 @@ interface UseFaceAnalysisParams {
 
 interface UseFaceAnalysisReturn {
   gazeRatio: number
+  gazeOn: boolean
   blinkCount: number
+  ear: number
   faceDetected: boolean
   feedback: string | null
 }
 
 export function useFaceAnalysis({ sessionId, questionId, videoRef, active }: UseFaceAnalysisParams): UseFaceAnalysisReturn {
   const [gazeRatio, setGazeRatio] = useState(0)
+  const [gazeOn, setGazeOn] = useState(false)
   const [blinkCount, setBlinkCount] = useState(0)
+  const [ear, setEar] = useState(0)
   const [faceDetected, setFaceDetected] = useState(false)
   const [feedback, setFeedback] = useState<string | null>(null)
 
@@ -45,7 +49,6 @@ export function useFaceAnalysis({ sessionId, questionId, videoRef, active }: Use
     const ws = new WebSocket(`${aiServerUrl}/ws/face/${sessionId}/${questionId}`)
     wsRef.current = ws
 
-    // Create offscreen canvas for frame capture
     if (!canvasRef.current) {
       canvasRef.current = document.createElement("canvas")
       canvasRef.current.width = 320
@@ -55,7 +58,6 @@ export function useFaceAnalysis({ sessionId, questionId, videoRef, active }: Use
     const ctx = canvas.getContext("2d")!
 
     ws.onopen = () => {
-      // Send frames at ~2fps
       intervalRef.current = setInterval(() => {
         const video = videoRef.current
         if (!video || video.videoWidth === 0 || ws.readyState !== WebSocket.OPEN) return
@@ -72,7 +74,9 @@ export function useFaceAnalysis({ sessionId, questionId, videoRef, active }: Use
         if (data.status === "face_data") {
           setFaceDetected(data.face_detected ?? false)
           if (data.gaze_ratio !== undefined) setGazeRatio(data.gaze_ratio)
+          if (data.gaze_on !== undefined) setGazeOn(data.gaze_on)
           if (data.blink_in_window !== undefined) setBlinkCount(data.blink_in_window)
+          if (data.ear !== undefined) setEar(data.ear)
         } else if (data.status === "feedback") {
           setFeedback(data.message || null)
           clearTimeout(feedbackTimerRef.current)
@@ -89,13 +93,14 @@ export function useFaceAnalysis({ sessionId, questionId, videoRef, active }: Use
     }
   }, [active, sessionId, questionId, videoRef, cleanup])
 
-  // Reset when question changes
   useEffect(() => {
     setGazeRatio(0)
+    setGazeOn(false)
     setBlinkCount(0)
+    setEar(0)
     setFaceDetected(false)
     setFeedback(null)
   }, [questionId])
 
-  return { gazeRatio, blinkCount, faceDetected, feedback }
+  return { gazeRatio, gazeOn, blinkCount, ear, faceDetected, feedback }
 }
