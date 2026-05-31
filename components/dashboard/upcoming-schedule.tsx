@@ -8,9 +8,13 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar, Briefcase, ChevronRight, Play, Loader2, MapPin } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Schedule } from "@/types/schedule"
-import { getScheduleList, practiceFromSchedule } from "@/lib/api/schedule"
+import { getScheduleList } from "@/lib/api/schedule"
 
-export function UpcomingSchedule() {
+interface UpcomingScheduleProps {
+  onStartInterview?: () => void
+}
+
+export function UpcomingSchedule({ onStartInterview }: UpcomingScheduleProps) {
   const router = useRouter()
   const [schedules, setSchedules] = useState<Schedule[]>([])
   const [loading, setLoading] = useState(true)
@@ -65,13 +69,8 @@ export function UpcomingSchedule() {
     return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
   }
 
-  const handlePractice = async (scheduleId: number) => {
-    try {
-      const result = await practiceFromSchedule(scheduleId)
-      router.push(`/interview?roomId=${result.roomId}`)
-    } catch {
-      // 에러 시 아무 동작 안함
-    }
+  const handlePractice = () => {
+    onStartInterview?.()
   }
 
   return (
@@ -155,7 +154,7 @@ export function UpcomingSchedule() {
                       ? "bg-[var(--color-primary)] text-white hover:opacity-90"
                       : "border-[var(--color-border)] bg-white text-[var(--color-text)] hover:bg-gray-50"
                   )}
-                  onClick={() => handlePractice(schedule.id)}
+                  onClick={handlePractice}
                 >
                   <Play className="h-3.5 w-3.5" />
                   연습하기

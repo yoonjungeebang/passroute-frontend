@@ -39,8 +39,8 @@ import {
   createSchedule,
   updateSchedule,
   deleteSchedule,
-  practiceFromSchedule,
 } from "@/lib/api/schedule"
+import { InterviewModal } from "@/components/dashboard/interview-modal"
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"]
 const MONTHS = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"]
@@ -94,6 +94,7 @@ export default function SchedulePage() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [formData, setFormData] = useState<ScheduleForm>(emptyForm)
   const [submitting, setSubmitting] = useState(false)
+  const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false)
 
   const fetchSchedules = useCallback(async () => {
     try {
@@ -252,13 +253,8 @@ export default function SchedulePage() {
     }
   }
 
-  const handlePractice = async (scheduleId: number) => {
-    try {
-      const result = await practiceFromSchedule(scheduleId)
-      router.push(`/interview?roomId=${result.roomId}`)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "연습 방 생성에 실패했습니다")
-    }
+  const handlePractice = () => {
+    setIsInterviewModalOpen(true)
   }
 
   const isToday = (day: number) => {
@@ -567,7 +563,7 @@ export default function SchedulePage() {
                               <Button
                                 size="sm"
                                 className="gap-1.5 bg-primary text-white hover:bg-primary/90"
-                                onClick={() => handlePractice(schedule.id)}
+                                onClick={handlePractice}
                               >
                                 <Play className="h-3.5 w-3.5" />
                                 연습하기
@@ -792,6 +788,11 @@ export default function SchedulePage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <InterviewModal
+        open={isInterviewModalOpen}
+        onOpenChange={setIsInterviewModalOpen}
+      />
     </div>
   )
 }

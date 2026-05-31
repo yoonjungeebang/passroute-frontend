@@ -56,7 +56,7 @@ function DashboardContent() {
         <div className="px-4 py-6 sm:px-6 lg:px-8">
           <div className="animate-stagger space-y-6 pb-24">
             <HeroSection onStartInterview={handleStartInterview} />
-            <UpcomingSchedule />
+            <UpcomingSchedule onStartInterview={handleStartInterview} />
             <SupportMaterials onStartInterview={handleStartInterviewWithIntro} />
             <DocumentAssets />
             <InterviewHistory />
