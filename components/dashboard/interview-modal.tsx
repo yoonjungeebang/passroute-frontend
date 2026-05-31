@@ -29,7 +29,7 @@ import {
   ChevronUp,
   Settings2,
   Building2,
-  Sparkles,
+  CheckCircle,
   Loader2,
   Dumbbell,
   Swords,
@@ -710,7 +710,7 @@ export function InterviewModal({ open, onOpenChange, prefillData }: InterviewMod
             <div className="space-y-6">
               <div className="text-center">
                 <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary">
-                  <Sparkles className="h-8 w-8 text-white" />
+                  <CheckCircle className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground">면접 준비 완료</h3>
                 <p className="mt-1 text-sm text-muted-foreground">설정을 확인하고 면접을 시작하세요</p>
@@ -744,13 +744,13 @@ export function InterviewModal({ open, onOpenChange, prefillData }: InterviewMod
                 <div className="flex items-center justify-between py-2 border-b border-border/30">
                   <span className="text-sm text-muted-foreground">이력서</span>
                   <span className="text-sm font-medium text-foreground">
-                    {selectedResume ? resumes.find(d => d.id === selectedResume)?.originalFilename : "대표 문서"}
+                    {selectedResume ? resumes.find(d => d.id === selectedResume)?.originalFilename : resumes.find(d => d.isRepresentative)?.originalFilename ?? "없음"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-border/30">
                   <span className="text-sm text-muted-foreground">포트폴리오</span>
                   <span className="text-sm font-medium text-foreground">
-                    {selectedPortfolio ? portfolios.find(d => d.id === selectedPortfolio)?.originalFilename : "대표 문서"}
+                    {selectedPortfolio ? portfolios.find(d => d.id === selectedPortfolio)?.originalFilename : portfolios.find(d => d.isRepresentative)?.originalFilename ?? "없음"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-2">
