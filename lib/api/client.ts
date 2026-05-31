@@ -99,14 +99,15 @@ export async function apiFetch<T>(
 
   const contentType = response.headers.get("content-type")
   if (!contentType || !contentType.includes("application/json")) {
+    if (response.ok) return undefined as T
     throw new Error(errorMessage)
   }
 
   const result: ApiResponse<T> = await response.json()
-  if (!response.ok || !result.data) {
+  if (!response.ok) {
     throw new Error(result.message || errorMessage)
   }
-  return result.data
+  return result.data as T
 }
 
 export function handleAuthError(status: number) {
