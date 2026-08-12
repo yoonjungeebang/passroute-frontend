@@ -542,7 +542,7 @@ function LiveInterviewScreen({
                         key={i}
                         className="w-1 rounded-full bg-foreground/40"
                         style={{
-                          height: `${8 + Math.sin((i / 12) * Math.PI * 2 + Date.now() / 300) * 10}px`,
+                          height: `${8 + Math.sin((i / 12) * Math.PI * 2) * 10}px`,
                           animation: "waveBar 0.8s ease-in-out infinite",
                           animationDelay: `${i * 60}ms`,
                         }}
@@ -666,7 +666,7 @@ function LiveInterviewScreen({
                 <div className="flex h-10 items-end gap-0.5">
                   {Array.from({ length: 24 }).map((_, i) => (
                     <div key={i} className="w-1 rounded-full bg-primary transition-all duration-150"
-                      style={{ height: `${answerState === "answering" ? (Math.sin((i / 24) * Math.PI) * 60 + 20 + Math.random() * 20) : 15}%`, opacity: answerState === "answering" ? 0.6 : 0.15 }} />
+                      style={{ height: `${answerState === "answering" ? (Math.sin((i / 24) * Math.PI) * 60 + 20 + Math.sin(i * 2.5) * 20) : 15}%`, opacity: answerState === "answering" ? 0.6 : 0.15 }} />
                   ))}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
