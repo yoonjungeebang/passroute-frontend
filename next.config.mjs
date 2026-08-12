@@ -8,7 +8,7 @@ const nextConfig = {
   },
   async rewrites() {
     const backend = process.env.NEXT_PUBLIC_API_BASE_URL
-    if (!backend) return { beforeFiles: [], afterFiles: [] }
+    if (!backend) return []
     return {
       beforeFiles: [
         // 페이지와 경로가 겹치는 API — Authorization 헤더로 구분
