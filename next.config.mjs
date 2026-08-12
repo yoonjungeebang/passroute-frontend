@@ -7,7 +7,7 @@ const nextConfig = {
     unoptimized: true,
   },
   async rewrites() {
-    const backend = process.env.NEXT_PUBLIC_API_BASE_URL
+    const backend = process.env.PASSROUTE_PROD_BACKEND_URL
     if (!backend) return []
     return {
       beforeFiles: [
