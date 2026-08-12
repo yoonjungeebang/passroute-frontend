@@ -31,3 +31,21 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: CI Success Notification
+        uses: sarisia/actions-status-discord@v1
+        if: success()
+        with:
+          title: Frontend CI 성공
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          color: 0x00FF00
+          username: PassRoute CI
+
+      - name: CI Failure Notification
+        uses: sarisia/actions-status-discord@v1
+        if: failure()
+        with:
+          title: Frontend CI 실패
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          color: 0xFF0000
+          username: PassRoute CI
