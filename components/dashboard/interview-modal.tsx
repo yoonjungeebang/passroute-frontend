@@ -817,7 +817,7 @@ export function InterviewModal({ open, onOpenChange, prefillData }: InterviewMod
                         (event) => {
                           try {
                             const data = JSON.parse(event.data)
-                            if (data.status === "READY" || data.status === "IN_PROGRESS") {
+                            if (data.status === "IN_PROGRESS" || data.status === "COMPLETED") {
                               eventSource.close()
                               handleClose()
                               router.push(`/interview?mode=${selectedPracticeMode}&sessionId=${sessionId}`)
