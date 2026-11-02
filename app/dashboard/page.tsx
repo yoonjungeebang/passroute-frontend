@@ -10,6 +10,7 @@ import { DocumentAssets } from "@/components/dashboard/document-assets"
 import { InterviewHistory } from "@/components/dashboard/interview-history"
 import { InterviewModal } from "@/components/dashboard/interview-modal"
 import { HeroSection } from "@/components/dashboard/hero-section"
+import { CsTopicAnalysis } from "@/components/dashboard/cs-topic-analysis"
 
 function DashboardContent() {
   const searchParams = useSearchParams()
@@ -59,6 +60,7 @@ function DashboardContent() {
             <UpcomingSchedule onStartInterview={handleStartInterview} />
             <SupportMaterials onStartInterview={handleStartInterviewWithIntro} />
             <DocumentAssets />
+            <CsTopicAnalysis />
             <InterviewHistory />
           </div>
         </div>
