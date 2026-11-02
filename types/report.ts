@@ -1,4 +1,4 @@
-export type InterviewType = "TECHNICAL" | "PERSONALITY"
+export type InterviewType = "technical" | "personality"
 
 export interface VoiceAnalysis {
   avgWpm: number
@@ -19,6 +19,14 @@ export interface WeaknessItem {
   comment: string
 }
 
+export interface QuestionDetailedFeedback {
+  [key: string]: unknown
+}
+
+export interface FactCheck {
+  [key: string]: unknown
+}
+
 export interface QuestionFeedback {
   question_index: number
   question: string
@@ -27,6 +35,9 @@ export interface QuestionFeedback {
   feedback: string
   star_comment: string | null
   voice_comment: string | null
+  detailed_feedback?: QuestionDetailedFeedback
+  fact_check?: FactCheck
+  follow_up?: boolean
 }
 
 export interface InterviewReportResponse {
@@ -49,8 +60,8 @@ export interface InterviewReportResponse {
 }
 
 export interface TurnFeedback {
-  roundType: string
-  weightedScore: number
+  round_type: string
+  weighted_score: number
   feedback: string
 }
 
@@ -66,5 +77,7 @@ export interface DebateReportResponse {
   recommendedTopics: string[]
   finalAdvice: string
   debateReadinessComment: string
+  voiceAnalysis: VoiceAnalysis | null
+  faceAnalysis: FaceAnalysis | null
   createdAt: string
 }

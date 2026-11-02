@@ -1,10 +1,12 @@
+import type { Difficulty, InterviewType } from "./interview"
+
 export interface HistoryListResponse {
   roomId: number
   companyName: string
   jobPosition: string
-  interviewType: "TECHNICAL" | "PERSONALITY"
+  interviewType: InterviewType
   interviewFormat: "ONE_ON_ONE" | "DEBATE"
-  difficulty: "NORMAL" | "EASY" | "HARD"
+  difficulty: Difficulty
   interviewCount: number
   createdAt: string
   completedAt: string
@@ -14,9 +16,9 @@ export interface HistoryDetailResponse {
   roomId: number
   companyName: string
   jobPosition: string
-  interviewType: "TECHNICAL" | "PERSONALITY"
+  interviewType: InterviewType
   interviewFormat: "ONE_ON_ONE" | "DEBATE"
-  difficulty: "NORMAL" | "EASY" | "HARD"
+  difficulty: Difficulty
   interviewCount: number
   pressureLevel: number
   followupCount: number

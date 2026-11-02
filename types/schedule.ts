@@ -20,6 +20,7 @@ export interface ScheduleCalendarResponse {
 }
 
 export interface ScheduleCreateRequest {
+  selfIntroId?: number
   title: string
   companyName: string
   jobPosition: string
