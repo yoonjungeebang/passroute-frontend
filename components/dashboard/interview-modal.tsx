@@ -37,7 +37,7 @@ import {
   FolderOpen,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { setupInterview, startInterview } from "@/lib/api/interview"
+import { setupInterview, startInterview, subscribePreparationEvents, subscribeCrawlEvents } from "@/lib/api/interview"
 import { getSelfIntroList, type SelfIntroResponse } from "@/lib/api/self-intro"
 import { getDocumentList, type DocumentItem } from "@/lib/api/documents"
 
@@ -797,9 +797,47 @@ export function InterviewModal({ open, onOpenChange, prefillData }: InterviewMod
                       followupCount: settings.followUp,
                     })
 
-                    const { sessionId } = await startInterview(roomId)
-                    handleClose()
-                    router.push(`/interview?mode=${selectedPracticeMode}&sessionId=${sessionId}`)
+                    // 크롤링 상태 구독 (백그라운드 - 완료 시 자동 종료)
+                    const crawlSource = subscribeCrawlEvents(
+                      roomId,
+                      () => { /* 크롤링 진행 이벤트 수신 */ },
+                      () => crawlSource.close()
+                    )
+
+                    const { sessionId, status } = await startInterview(roomId)
+                    crawlSource.close()
+
+                    if (status === "IN_PROGRESS" || status === "COMPLETED") {
+                      handleClose()
+                      router.push(`/interview?mode=${selectedPracticeMode}&sessionId=${sessionId}`)
+                    } else if (status === "PREPARING") {
+                      // SSE로 준비 완료 대기
+                      const eventSource = subscribePreparationEvents(
+                        sessionId,
+                        (event) => {
+                          try {
+                            const data = JSON.parse(event.data)
+                            if (data.status === "READY" || data.status === "IN_PROGRESS") {
+                              eventSource.close()
+                              handleClose()
+                              router.push(`/interview?mode=${selectedPracticeMode}&sessionId=${sessionId}`)
+                            } else if (data.status === "PREPARE_FAILED") {
+                              eventSource.close()
+                              setStarting(false)
+                            }
+                          } catch { /* ignore */ }
+                        },
+                        () => {
+                          eventSource.close()
+                          // SSE 연결 실패 시에도 이동 시도
+                          handleClose()
+                          router.push(`/interview?mode=${selectedPracticeMode}&sessionId=${sessionId}`)
+                        }
+                      )
+                    } else {
+                      // PREPARE_FAILED 등
+                      setStarting(false)
+                    }
                   } catch {
                     setStarting(false)
                   }
