@@ -3,7 +3,7 @@ import type { HistoryListResponse, HistoryDetailResponse, PageResponse } from "@
 import type { InterviewRoomResponse } from "@/types/interview"
 
 export async function getHistoryList(params?: {
-  type?: "TECHNICAL" | "PERSONALITY"
+  type?: "technical" | "personality"
   format?: "ONE_ON_ONE" | "DEBATE"
   page?: number
   size?: number

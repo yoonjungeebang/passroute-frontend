@@ -53,10 +53,87 @@ export async function endInterview(sessionId: number): Promise<void> {
   }
 }
 
-export async function getWorstClip(sessionId: number): Promise<string> {
-  return apiFetch<string>(
+export interface WorstClipResponse {
+  videoUrl: string
+  clipReason: string
+}
+
+export async function getWorstClip(sessionId: number): Promise<WorstClipResponse> {
+  return apiFetch<WorstClipResponse>(
     `/interview/sessions/${sessionId}/worst-clip`,
     { method: "GET" },
     "클립 조회에 실패했습니다"
+  )
+}
+
+export async function saveWorstClip(sessionId: number, data: {
+  questionId: number
+  videoUrl: string
+  clipScore: number
+  clipReason?: string
+}): Promise<void> {
+  return apiFetch<void>(
+    `/interview/sessions/${sessionId}/worst-clip`,
+    { method: "POST", body: JSON.stringify(data) },
+    "클립 저장에 실패했습니다"
+  )
+}
+
+export interface ClipUploadUrlResponse {
+  uploadUrl: string
+  fileUrl: string
+}
+
+export async function getClipUploadUrl(sessionId: number, questionId: number): Promise<ClipUploadUrlResponse> {
+  return apiFetch<ClipUploadUrlResponse>(
+    `/interview/sessions/${sessionId}/clip-upload-url?questionId=${questionId}`,
+    { method: "GET" },
+    "클립 업로드 URL 발급에 실패했습니다"
+  )
+}
+
+export function subscribePreparationEvents(
+  sessionId: number,
+  onMessage: (event: MessageEvent) => void,
+  onError?: (event: Event) => void
+): EventSource {
+  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null
+  const url = `/interview/sessions/${sessionId}/preparation-events${token ? `?token=${token}` : ""}`
+  const eventSource = new EventSource(url)
+  eventSource.onmessage = onMessage
+  if (onError) eventSource.onerror = onError
+  return eventSource
+}
+
+export function subscribeCrawlEvents(
+  roomId: number,
+  onMessage: (event: MessageEvent) => void,
+  onError?: (event: Event) => void
+): EventSource {
+  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null
+  const url = `/interview/rooms/${roomId}/crawl-events${token ? `?token=${token}` : ""}`
+  const eventSource = new EventSource(url)
+  eventSource.onmessage = onMessage
+  if (onError) eventSource.onerror = onError
+  return eventSource
+}
+
+export interface TopicStat {
+  topic: string
+  questionCount: number
+  averagePercentage: number
+  recommendation: string
+}
+
+export interface CsTopicAnalysisResponse {
+  topics: TopicStat[]
+  weakTopics: TopicStat[]
+}
+
+export async function getCsTopicAnalysis(): Promise<CsTopicAnalysisResponse> {
+  return apiFetch<CsTopicAnalysisResponse>(
+    "/interview/cs-topics/analysis",
+    { method: "GET" },
+    "CS 토픽 분석 조회에 실패했습니다"
   )
 }

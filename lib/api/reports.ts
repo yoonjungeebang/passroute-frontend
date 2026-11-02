@@ -77,3 +77,114 @@ export async function getDebateReport(sessionId: number): Promise<DebateReportRe
   const result = await response.json()
   return result.data
 }
+
+export interface UpcomingReportItem {
+  scheduleId: number
+  companyName: string
+  jobPosition: string
+  interviewType: string
+  scheduledAt: string
+  daysUntil: number
+  selfIntroId: number | null
+  selfIntroFilename: string | null
+  previousReports: PrevReportSummary[]
+  aiFeedback: string | null
+}
+
+export interface PrevReportSummary {
+  [key: string]: unknown
+}
+
+export interface UpcomingReportResponse {
+  items: UpcomingReportItem[]
+}
+
+export async function getUpcomingReports(): Promise<UpcomingReportResponse> {
+  return apiFetch<UpcomingReportResponse>(
+    "/reports/upcoming",
+    { method: "GET" },
+    "다가오는 면접 리포트 조회에 실패했습니다"
+  )
+}
+
+export interface SelfIntroReportResponse {
+  selfIntroId: number
+  companyName: string
+  jobPosition: string
+  totalSessions: number
+  hasTrendData: boolean
+  scoreTimeline: SessionScorePoint[]
+  overallAverage: number
+  itemAverages: Record<string, number>
+  itemTrend: ItemTrendItem[]
+  bestSession: SessionSummary | null
+  worstSession: SessionSummary | null
+  topRecommendedQuestions: RecommendedQuestionCount[]
+  readiness: ReadinessInfo | null
+  growthSummary: string | null
+  aiSummary: AiSummary | null
+}
+
+export interface SessionScorePoint {
+  sessionId: number
+  round: number
+  score: number
+  date: string
+}
+
+export interface ItemTrendItem {
+  item: string
+  firstAvg: number
+  lastAvg: number
+  diff: number
+  direction: "UP" | "STABLE" | "DOWN"
+}
+
+export interface SessionSummary {
+  sessionId: number
+  round: number
+  score: number
+  strengths: string
+  weaknesses: { item: string; comment: string }[]
+  date: string
+}
+
+export interface RecommendedQuestionCount {
+  text: string
+  count: number
+}
+
+export interface ReadinessInfo {
+  level: "READY" | "NEEDS_REVIEW" | "NEEDS_IMPROVEMENT"
+  comment: string
+}
+
+export interface AiSummary {
+  overall: string
+  repeatedWeakness: string
+  nextSteps: string
+}
+
+export async function getSelfIntroReport(selfIntroId: number): Promise<SelfIntroReportResponse> {
+  return apiFetch<SelfIntroReportResponse>(
+    `/reports/self-intro/${selfIntroId}`,
+    { method: "GET" },
+    "자소서 리포트 조회에 실패했습니다"
+  )
+}
+
+export async function deleteInterviewReport(sessionId: number): Promise<void> {
+  return apiFetch<void>(
+    `/reports/interview/${sessionId}`,
+    { method: "DELETE" },
+    "면접 리포트 삭제에 실패했습니다"
+  )
+}
+
+export async function deleteDebateReport(sessionId: number): Promise<void> {
+  return apiFetch<void>(
+    `/reports/debate/${sessionId}`,
+    { method: "DELETE" },
+    "토론 리포트 삭제에 실패했습니다"
+  )
+}
