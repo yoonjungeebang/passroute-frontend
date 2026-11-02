@@ -35,7 +35,7 @@ interface DeviceStatus {
   audioInput: "checking" | "detected" | "not-detected"
 }
 
-import { getSessionQuestions, submitAnswer, endInterview, getClipUploadUrl, saveWorstClip } from "@/lib/api/interview"
+import { getSessionQuestions, submitAnswer, endInterview, getClipUploadUrl } from "@/lib/api/interview"
 import type { SessionQuestion, AnswerProgressResponse } from "@/types/interview"
 import { useSTT } from "@/hooks/use-stt"
 import { useFaceAnalysis } from "@/hooks/use-face-analysis"
@@ -327,7 +327,6 @@ function LiveInterviewScreen({
   // 영상 녹화 (클립 업로드용)
   const recorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
-  const clipScoresRef = useRef<Map<number, { blob: Blob; score: number }>>(new Map())
 
   const startRecording = useCallback(() => {
     if (!stream) return
@@ -416,31 +415,24 @@ function LiveInterviewScreen({
     if (!currentQuestion) return
     setAnswerState("answered")
     const clipBlob = stopRecording()
+    const questionId = currentQuestion.questionId
 
-    // 클립 업로드 (백그라운드)
+    // 클립 업로드 (S3 presigned URL)
+    let videoUrl: string | undefined
     if (clipBlob && clipBlob.size > 0) {
-      const questionId = currentQuestion.questionId
-      getClipUploadUrl(sessionId, questionId).then(async ({ uploadUrl, fileUrl }) => {
+      try {
+        const { uploadUrl, fileUrl } = await getClipUploadUrl(sessionId, questionId)
         await fetch(uploadUrl, { method: "PUT", body: clipBlob, headers: { "Content-Type": "video/webm" } })
-        // 간단한 점수 산출: 답변 시간 기반 (짧을수록 낮은 점수)
-        const clipScore = Math.min(100, Math.max(10, answerTime * 2))
-        clipScoresRef.current.set(questionId, { blob: clipBlob, score: clipScore })
-        // 답변 제출 시 videoUrl, clipScore 포함
-        await submitAnswer(sessionId, {
-          questionId,
-          answerText: lastTranscriptRef.current || transcript,
-          voiceData: wpm > 0 ? { filler_word_count: fillerCount, wpm } : undefined,
-          videoUrl: fileUrl,
-          clipScore,
-        }).catch(() => {})
-      }).catch(() => {})
+        videoUrl = fileUrl
+      } catch { /* 업로드 실패 시 영상 없이 진행 */ }
     }
 
     try {
       const result: AnswerProgressResponse = await submitAnswer(sessionId, {
-        questionId: currentQuestion.questionId,
+        questionId,
         answerText: lastTranscriptRef.current || transcript,
         voiceData: wpm > 0 ? { filler_word_count: fillerCount, wpm } : undefined,
+        videoUrl,
       })
       if (result.hasFollowUp && result.followUpQuestionId && result.followUpQuestionText) {
         setFollowUpQuestion({ id: result.followUpQuestionId, text: result.followUpQuestionText, audioUrl: result.audioUrl })
@@ -464,24 +456,6 @@ function LiveInterviewScreen({
       setAnswerState("waiting")
       setAnswerTime(0)
     } else {
-      // 최저 점수 클립 저장
-      if (clipScoresRef.current.size > 0) {
-        let worstId = 0
-        let worstScore = Infinity
-        clipScoresRef.current.forEach((val, qId) => {
-          if (val.score < worstScore) { worstScore = val.score; worstId = qId }
-        })
-        if (worstId) {
-          const { uploadUrl, fileUrl } = await getClipUploadUrl(sessionId, worstId).catch(() => ({ uploadUrl: "", fileUrl: "" }))
-          if (uploadUrl) {
-            const worstBlob = clipScoresRef.current.get(worstId)?.blob
-            if (worstBlob) {
-              await fetch(uploadUrl, { method: "PUT", body: worstBlob, headers: { "Content-Type": "video/webm" } }).catch(() => {})
-              await saveWorstClip(sessionId, { questionId: worstId, videoUrl: fileUrl, clipScore: worstScore }).catch(() => {})
-            }
-          }
-        }
-      }
       try {
         await endInterview(sessionId)
       } catch { /* ignore */ }

@@ -82,13 +82,17 @@ export default function DebatePage() {
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
   const debateVideoRef = useRef<HTMLVideoElement>(null)
 
-  // currentState에서 라운드 타입 추출
+  // currentState에서 라운드 타입 추출 (사용자 턴 기준)
   const currentRoundType = (() => {
     const state = debateState?.currentState ?? ""
-    if (state.startsWith("OPENING")) return "OPENING" as const
+    if (state === "OPENING_USER") return "OPENING" as const
+    if (state === "REBUTTAL_1_USER") return "REBUTTAL_1" as const
+    if (state === "REBUTTAL_2_USER") return "REBUTTAL_2" as const
+    if (state === "CLOSING_USER") return "CLOSING" as const
+    // 사용자 턴이 아닌 상태에서는 가장 가까운 라운드로 추정
     if (state.includes("REBUTTAL_2")) return "REBUTTAL_2" as const
-    if (state.includes("REBUTTAL_1") || state.includes("REBUTTAL")) return "REBUTTAL_1" as const
-    if (state.startsWith("CLOSING")) return "CLOSING" as const
+    if (state.includes("REBUTTAL")) return "REBUTTAL_1" as const
+    if (state.includes("CLOSING")) return "CLOSING" as const
     return "OPENING" as const
   })()
 
