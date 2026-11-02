@@ -37,7 +37,7 @@ import {
   FolderOpen,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { setupInterview, startInterview } from "@/lib/api/interview"
+import { setupInterview, startInterview, subscribePreparationEvents, subscribeCrawlEvents } from "@/lib/api/interview"
 import { getSelfIntroList, type SelfIntroResponse } from "@/lib/api/self-intro"
 import { getDocumentList, type DocumentItem } from "@/lib/api/documents"
 
@@ -98,10 +98,12 @@ const practiceModes = [
   },
 ]
 
+import type { Difficulty } from "@/types/interview"
+
 interface PersonaSettings {
   pressure: number
   followUp: number
-  difficulty: "EASY" | "NORMAL" | "HARD"
+  difficulty: Difficulty
 }
 
 const personas: {
@@ -119,7 +121,7 @@ const personas: {
     subtitle: "현업 실무자/팀장",
     icon: Briefcase,
     description: "기술 선택 이유, 프로젝트 진위, 문제 해결",
-    defaults: { pressure: 6, followUp: 5, difficulty: "HARD" },
+    defaults: { pressure: 6, followUp: 5, difficulty: "high" },
     color: "bg-foreground",
   },
   {
@@ -128,7 +130,7 @@ const personas: {
     subtitle: "사업부장/본부장",
     icon: Crown,
     description: "동기, 태도, 성장 가능성, 조직 적합성",
-    defaults: { pressure: 5, followUp: 4, difficulty: "NORMAL" },
+    defaults: { pressure: 5, followUp: 4, difficulty: "middle" },
     color: "bg-foreground",
   },
   {
@@ -137,7 +139,7 @@ const personas: {
     subtitle: "HR/문화 적합성",
     icon: Heart,
     description: "갈등 해결, 피드백 수용, 가치관",
-    defaults: { pressure: 3, followUp: 4, difficulty: "EASY" },
+    defaults: { pressure: 3, followUp: 4, difficulty: "low" },
     color: "bg-foreground",
   },
   {
@@ -146,7 +148,7 @@ const personas: {
     subtitle: "CTO/테크리드",
     icon: Code,
     description: "아키텍처, 트레이드오프, 예외 상황 대응",
-    defaults: { pressure: 6, followUp: 5, difficulty: "HARD" },
+    defaults: { pressure: 6, followUp: 5, difficulty: "high" },
     color: "bg-foreground",
   },
 ]
@@ -163,7 +165,7 @@ export function InterviewModal({ open, onOpenChange, prefillData }: InterviewMod
   const [settings, setSettings] = useState<PersonaSettings>({
     pressure: 5,
     followUp: 3,
-    difficulty: "NORMAL" as const,
+    difficulty: "middle" as Difficulty,
   })
   const [interviewCount, setInterviewCount] = useState(5)
   const [starting, setStarting] = useState(false)
@@ -668,7 +670,7 @@ export function InterviewModal({ open, onOpenChange, prefillData }: InterviewMod
                       <div className="space-y-2">
                         <Label className="text-xs text-muted-foreground">난이도</Label>
                         <div className="grid grid-cols-3 gap-2">
-                          {([["EASY", "기본"], ["NORMAL", "보통"], ["HARD", "심화"]] as const).map(([val, label]) => (
+                          {([["low", "기본"], ["middle", "보통"], ["high", "심화"]] as const).map(([val, label]) => (
                             <button
                               key={val}
                               type="button"
@@ -775,7 +777,7 @@ export function InterviewModal({ open, onOpenChange, prefillData }: InterviewMod
                   if (!currentIntro || !selectedStage || !selectedMode) return
                   setStarting(true)
                   try {
-                    const interviewType = selectedStage === "technical" ? "TECHNICAL" : "PERSONALITY"
+                    const interviewType = selectedStage as "technical" | "personality"
                     const interviewFormat = selectedMode === "group" ? "DEBATE" : "ONE_ON_ONE"
 
                     const { roomId } = await setupInterview({
@@ -795,9 +797,47 @@ export function InterviewModal({ open, onOpenChange, prefillData }: InterviewMod
                       followupCount: settings.followUp,
                     })
 
-                    const { sessionId } = await startInterview(roomId)
-                    handleClose()
-                    router.push(`/interview?mode=${selectedPracticeMode}&sessionId=${sessionId}`)
+                    // 크롤링 상태 구독 (백그라운드 - 완료 시 자동 종료)
+                    const crawlSource = subscribeCrawlEvents(
+                      roomId,
+                      () => { /* 크롤링 진행 이벤트 수신 */ },
+                      () => crawlSource.close()
+                    )
+
+                    const { sessionId, status } = await startInterview(roomId)
+                    crawlSource.close()
+
+                    if (status === "IN_PROGRESS" || status === "COMPLETED") {
+                      handleClose()
+                      router.push(`/interview?mode=${selectedPracticeMode}&sessionId=${sessionId}`)
+                    } else if (status === "PREPARING") {
+                      // SSE로 준비 완료 대기
+                      const eventSource = subscribePreparationEvents(
+                        sessionId,
+                        (event) => {
+                          try {
+                            const data = JSON.parse(event.data)
+                            if (data.status === "IN_PROGRESS" || data.status === "COMPLETED") {
+                              eventSource.close()
+                              handleClose()
+                              router.push(`/interview?mode=${selectedPracticeMode}&sessionId=${sessionId}`)
+                            } else if (data.status === "PREPARE_FAILED") {
+                              eventSource.close()
+                              setStarting(false)
+                            }
+                          } catch { /* ignore */ }
+                        },
+                        () => {
+                          eventSource.close()
+                          // SSE 연결 실패 시에도 이동 시도
+                          handleClose()
+                          router.push(`/interview?mode=${selectedPracticeMode}&sessionId=${sessionId}`)
+                        }
+                      )
+                    } else {
+                      // PREPARE_FAILED 등
+                      setStarting(false)
+                    }
                   } catch {
                     setStarting(false)
                   }

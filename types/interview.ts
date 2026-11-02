@@ -1,6 +1,8 @@
-export type InterviewType = "TECHNICAL" | "PERSONALITY"
+export type InterviewType = "technical" | "personality"
 export type InterviewFormat = "ONE_ON_ONE" | "DEBATE"
-export type PracticeMode = "PRACTICE" | "REAL"
+export type Difficulty = "low" | "middle" | "high"
+export type PracticeMode = "practice" | "real"
+export type SessionStatus = "PREPARING" | "PREPARE_FAILED" | "IN_PROGRESS" | "COMPLETED" | "ABORTED"
 
 export interface InterviewSetupRequest {
   siId?: number
@@ -15,7 +17,7 @@ export interface InterviewSetupRequest {
   aiCompetitors?: string
   debateTopic?: string
   interviewCount?: number
-  difficulty: "EASY" | "NORMAL" | "HARD"
+  difficulty: Difficulty
   pressureLevel?: number
   followupCount?: number
 }
@@ -26,13 +28,14 @@ export interface InterviewRoomResponse {
 
 export interface InterviewStartResponse {
   sessionId: number
-  questions: SessionQuestion[]
+  status: SessionStatus
 }
 
 export interface SessionQuestion {
   questionId: number
   questionText: string
   questionOrder: number
+  audioUrl?: string
 }
 
 export interface AnswerSubmission {
@@ -44,6 +47,7 @@ export interface AnswerSubmission {
   }
   videoUrl?: string
   clipScore?: number
+  clipReason?: string
 }
 
 export interface AnswerProgressResponse {
@@ -51,10 +55,5 @@ export interface AnswerProgressResponse {
   followUpQuestionId?: number
   followUpQuestionText?: string
   lastQuestion: boolean
-  evaluation?: {
-    structure?: number
-    logic?: number
-    specificity?: number
-    jobFit?: number
-  }
+  audioUrl?: string
 }

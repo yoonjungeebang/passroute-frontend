@@ -6,11 +6,11 @@ import { Sidebar } from "@/components/dashboard/sidebar"
 import { MobileHeader } from "@/components/dashboard/mobile-header"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ChevronLeft, ChevronDown, Search, X, RotateCcw, BarChart2, Loader2 } from "lucide-react"
+import { ChevronLeft, ChevronDown, Search, X, RotateCcw, BarChart2, Loader2, Trash2 } from "lucide-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBrain, faChartLine, faStar, faArrowTrendUp, faLightbulb } from "@fortawesome/free-solid-svg-icons"
 import { cn } from "@/lib/utils"
-import { getReportList, getInterviewReport, getDebateReport, type ReportListItem } from "@/lib/api/reports"
+import { getReportList, getInterviewReport, getDebateReport, deleteInterviewReport, deleteDebateReport, getSelfIntroReport, type ReportListItem, type SelfIntroReportResponse } from "@/lib/api/reports"
 import { getWorstClip } from "@/lib/api/interview"
 import type { InterviewReportResponse, DebateReportResponse } from "@/types/report"
 
@@ -69,6 +69,7 @@ export default function ReportsPage() {
   const [expandedDebateReport, setExpandedDebateReport] = useState<DebateReportResponse | null>(null)
   const [expandedLoading, setExpandedLoading] = useState(false)
   const [worstClipUrl, setWorstClipUrl] = useState<string | null>(null)
+  const [selfIntroReport, setSelfIntroReport] = useState<SelfIntroReportResponse | null>(null)
   const [selectedType, setSelectedType] = useState<"all" | "interview" | "debate">("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [page, setPage] = useState(0)
@@ -106,23 +107,47 @@ export default function ReportsPage() {
     setExpandedReport(null)
     setExpandedDebateReport(null)
     setWorstClipUrl(null)
+    setSelfIntroReport(null)
     try {
       if (report.reportType === "debate") {
         const debateReport = await getDebateReport(report.domainId)
         setExpandedDebateReport(debateReport)
       } else {
-        const [interviewReport, clipUrl] = await Promise.all([
+        const [interviewReport, clipData] = await Promise.all([
           getInterviewReport(report.domainId),
           getWorstClip(report.domainId).catch(() => null),
         ])
         setExpandedReport(interviewReport)
-        setWorstClipUrl(clipUrl)
+        setWorstClipUrl(clipData?.videoUrl ?? null)
+
+        // 자소서 리포트도 함께 로드
+        if (report.selfIntroId) {
+          getSelfIntroReport(report.selfIntroId).then(setSelfIntroReport).catch(() => {})
+        }
       }
     } catch {
       setExpandedReport(null)
       setExpandedDebateReport(null)
     } finally {
       setExpandedLoading(false)
+    }
+  }
+
+  const handleDeleteReport = async (report: ReportListItem) => {
+    try {
+      if (report.reportType === "debate") {
+        await deleteDebateReport(report.domainId)
+      } else {
+        await deleteInterviewReport(report.domainId)
+      }
+      setReports(prev => prev.filter(r => r.domainId !== report.domainId))
+      if (expandedId === report.domainId) {
+        setExpandedId(null)
+        setExpandedReport(null)
+        setExpandedDebateReport(null)
+      }
+    } catch {
+      // 삭제 실패
     }
   }
 
@@ -301,8 +326,8 @@ export default function ReportsPage() {
                               {expandedDebateReport.turnFeedback.map((tf, i) => (
                                 <div key={i} className="rounded-lg border border-border/50 p-3">
                                   <div className="flex items-center justify-between mb-1.5">
-                                    <Badge variant="outline" className="text-xs">{tf.roundType}</Badge>
-                                    <span className="text-xs font-bold text-foreground">{tf.weightedScore}점</span>
+                                    <Badge variant="outline" className="text-xs">{tf.round_type}</Badge>
+                                    <span className="text-xs font-bold text-foreground">{tf.weighted_score}점</span>
                                   </div>
                                   <p className="text-xs text-muted-foreground">{tf.feedback}</p>
                                 </div>
@@ -382,6 +407,33 @@ export default function ReportsPage() {
                             </div>
                           </div>
 
+                          {/* Self-Intro Report (자소서 리포트) */}
+                          {selfIntroReport && selfIntroReport.totalSessions > 0 && (
+                            <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-4">
+                              <h4 className="mb-2 text-sm font-semibold text-purple-600 flex items-center gap-2">
+                                <FontAwesomeIcon icon={faChartLine} className="h-3.5 w-3.5" />
+                                자소서 기반 분석 ({selfIntroReport.companyName} - {selfIntroReport.jobPosition})
+                              </h4>
+                              <div className="grid grid-cols-3 gap-3 text-center">
+                                <div>
+                                  <div className="text-lg font-bold text-foreground">{selfIntroReport.totalSessions}회</div>
+                                  <div className="text-xs text-muted-foreground">총 면접</div>
+                                </div>
+                                <div>
+                                  <div className="text-lg font-bold text-foreground">{selfIntroReport.overallAverage.toFixed(1)}</div>
+                                  <div className="text-xs text-muted-foreground">평균 점수</div>
+                                </div>
+                                <div>
+                                  <div className="text-lg font-bold text-foreground">{selfIntroReport.readiness?.level ?? "-"}</div>
+                                  <div className="text-xs text-muted-foreground">준비도</div>
+                                </div>
+                              </div>
+                              {selfIntroReport.aiSummary && (
+                                <p className="mt-3 text-xs text-muted-foreground">{selfIntroReport.aiSummary.overall}</p>
+                              )}
+                            </div>
+                          )}
+
                           {/* Worst Clip */}
                           {worstClipUrl && (
                             <div className="rounded-xl border border-border/50 p-4">
@@ -403,6 +455,15 @@ export default function ReportsPage() {
                             <Button size="sm" variant="outline" className="text-xs gap-1.5">
                               <BarChart2 className="h-3 w-3" />
                               상세 분석
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs gap-1.5 text-destructive hover:bg-destructive/10"
+                              onClick={() => handleDeleteReport(report)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              삭제
                             </Button>
                           </div>
                         </div>

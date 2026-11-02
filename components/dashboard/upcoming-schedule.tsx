@@ -9,6 +9,7 @@ import { Calendar, Briefcase, ChevronRight, Play, Loader2, MapPin } from "lucide
 import { cn } from "@/lib/utils"
 import type { Schedule } from "@/types/schedule"
 import { getScheduleList } from "@/lib/api/schedule"
+import { getUpcomingReports, type UpcomingReportItem } from "@/lib/api/reports"
 
 interface UpcomingScheduleProps {
   onStartInterview?: () => void
@@ -17,17 +18,21 @@ interface UpcomingScheduleProps {
 export function UpcomingSchedule({ onStartInterview }: UpcomingScheduleProps) {
   const router = useRouter()
   const [schedules, setSchedules] = useState<Schedule[]>([])
+  const [upcomingReports, setUpcomingReports] = useState<UpcomingReportItem[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     async function fetchSchedules() {
       try {
-        const data = await getScheduleList()
-        // 예정된 일정만 필터링하고, 가까운 날짜 순으로 최대 3개만 표시
+        const [data, reportData] = await Promise.all([
+          getScheduleList(),
+          getUpcomingReports().catch(() => ({ items: [] })),
+        ])
         const upcoming = data
           .filter(s => s.status === "SCHEDULED" && new Date(s.interviewDate) >= new Date())
           .slice(0, 3)
         setSchedules(upcoming)
+        setUpcomingReports(reportData.items)
       } catch {
         // 조용히 실패 - 대시보드 위젯이므로
       } finally {
@@ -99,6 +104,7 @@ export function UpcomingSchedule({ onStartInterview }: UpcomingScheduleProps) {
           schedules.map((schedule) => {
             const dDay = getDDay(schedule.interviewDate)
             const isUrgent = dDay <= 3
+            const reportItem = upcomingReports.find(r => r.scheduleId === schedule.id)
 
             return (
               <div
@@ -142,6 +148,12 @@ export function UpcomingSchedule({ onStartInterview }: UpcomingScheduleProps) {
                       </span>
                     )}
                   </div>
+                  {reportItem?.aiFeedback && (
+                    <p className="mt-1 text-xs text-primary/80 line-clamp-1">{reportItem.aiFeedback}</p>
+                  )}
+                  {reportItem && reportItem.previousReports.length > 0 && (
+                    <p className="text-xs text-muted-foreground/70">이전 {reportItem.previousReports.length}회 면접 분석 있음</p>
+                  )}
                 </div>
 
                 {/* Quick Action */}

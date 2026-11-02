@@ -35,10 +35,11 @@ interface DeviceStatus {
   audioInput: "checking" | "detected" | "not-detected"
 }
 
-import { getSessionQuestions, submitAnswer, endInterview } from "@/lib/api/interview"
+import { getSessionQuestions, submitAnswer, endInterview, getClipUploadUrl } from "@/lib/api/interview"
 import type { SessionQuestion, AnswerProgressResponse } from "@/types/interview"
 import { useSTT } from "@/hooks/use-stt"
 import { useFaceAnalysis } from "@/hooks/use-face-analysis"
+import { useTTS } from "@/hooks/use-tts"
 
 // Pre-check Component
 function PreCheckScreen({
@@ -320,14 +321,49 @@ function LiveInterviewScreen({
   const [totalTime, setTotalTime] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [reAnswerCount, setReAnswerCount] = useState(0)
-  const [followUpQuestion, setFollowUpQuestion] = useState<{ id: number; text: string } | null>(null)
-  const [verbalScores, setVerbalScores] = useState({ structure: 0, logic: 0, specificity: 0, jobFit: 0 })
+  const [followUpQuestion, setFollowUpQuestion] = useState<{ id: number; text: string; audioUrl?: string } | null>(null)
+  const [verbalScores] = useState({ structure: 0, logic: 0, specificity: 0, jobFit: 0 })
+
+  // 영상 녹화 (클립 업로드용)
+  const recorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+
+  const startRecording = useCallback(() => {
+    if (!stream) return
+    chunksRef.current = []
+    try {
+      const recorder = new MediaRecorder(stream, { mimeType: "video/webm" })
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      recorder.start()
+      recorderRef.current = recorder
+    } catch { /* MediaRecorder not supported */ }
+  }, [stream])
+
+  const stopRecording = useCallback((): Blob | null => {
+    const recorder = recorderRef.current
+    if (!recorder || recorder.state === "inactive") return null
+    recorder.stop()
+    recorderRef.current = null
+    return chunksRef.current.length > 0 ? new Blob(chunksRef.current, { type: "video/webm" }) : null
+  }, [])
+
+  // TTS 재생
+  const tts = useTTS()
 
   const currentQuestion = followUpQuestion
-    ? { questionId: followUpQuestion.id, questionText: followUpQuestion.text, questionOrder: -1 }
+    ? { questionId: followUpQuestion.id, questionText: followUpQuestion.text, questionOrder: -1, audioUrl: followUpQuestion.audioUrl }
     : questions[currentQuestionIndex]
   const totalQuestions = questions.length
   const questionTimeLimit = 210 // 3:30
+
+  // 질문이 바뀔 때 TTS 재생
+  useEffect(() => {
+    if (currentQuestion?.audioUrl) {
+      tts.play(currentQuestion.audioUrl)
+    }
+    return () => tts.stop()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentQuestion?.questionId])
 
   // STT hook
   const { transcript, wpm, fillerCount, audioLevel, feedback: sttFeedback } = useSTT({
@@ -371,28 +407,35 @@ function LiveInterviewScreen({
     if (mode === "real" && reAnswerCount > 0) return
     setAnswerState("answering")
     setAnswerTime(0)
+    startRecording()
     if (mode === "real") setReAnswerCount(reAnswerCount + 1)
   }
 
   const handleFinishAnswer = async () => {
     if (!currentQuestion) return
     setAnswerState("answered")
+    const clipBlob = stopRecording()
+    const questionId = currentQuestion.questionId
+
+    // 클립 업로드 (S3 presigned URL)
+    let videoUrl: string | undefined
+    if (clipBlob && clipBlob.size > 0) {
+      try {
+        const { uploadUrl, fileUrl } = await getClipUploadUrl(sessionId, questionId)
+        await fetch(uploadUrl, { method: "PUT", body: clipBlob, headers: { "Content-Type": "video/webm" } })
+        videoUrl = fileUrl
+      } catch { /* 업로드 실패 시 영상 없이 진행 */ }
+    }
+
     try {
       const result: AnswerProgressResponse = await submitAnswer(sessionId, {
-        questionId: currentQuestion.questionId,
+        questionId,
         answerText: lastTranscriptRef.current || transcript,
         voiceData: wpm > 0 ? { filler_word_count: fillerCount, wpm } : undefined,
+        videoUrl,
       })
-      if (result.evaluation) {
-        setVerbalScores({
-          structure: result.evaluation.structure ?? 0,
-          logic: result.evaluation.logic ?? 0,
-          specificity: result.evaluation.specificity ?? 0,
-          jobFit: result.evaluation.jobFit ?? 0,
-        })
-      }
       if (result.hasFollowUp && result.followUpQuestionId && result.followUpQuestionText) {
-        setFollowUpQuestion({ id: result.followUpQuestionId, text: result.followUpQuestionText })
+        setFollowUpQuestion({ id: result.followUpQuestionId, text: result.followUpQuestionText, audioUrl: result.audioUrl })
       } else {
         setFollowUpQuestion(null)
       }
@@ -519,7 +562,7 @@ function LiveInterviewScreen({
                 {/* AI Avatar with voice visualization */}
                 <div className="relative">
                   {/* Pulsing rings when speaking */}
-                  {answerState === "waiting" && (
+                  {tts.playing && (
                     <>
                       <div className="absolute inset-0 m-auto h-24 w-24 animate-ping rounded-full border border-foreground/5" style={{ animationDuration: "2s" }} />
                       <div className="absolute inset-0 m-auto h-28 w-28 animate-ping rounded-full border border-foreground/3" style={{ animationDuration: "3s" }} />
@@ -527,7 +570,7 @@ function LiveInterviewScreen({
                   )}
                   <div className={cn(
                     "relative flex h-20 w-20 items-center justify-center rounded-full border-2 transition-all duration-300",
-                    answerState === "waiting" ? "border-foreground/20 bg-foreground/5" : "border-border bg-background"
+                    tts.playing ? "border-foreground/20 bg-foreground/5" : "border-border bg-background"
                   )}>
                     <Headphones className="h-8 w-8 text-foreground/60" />
                   </div>
@@ -535,7 +578,7 @@ function LiveInterviewScreen({
                 <p className="mt-3 text-sm font-medium text-foreground">AI 면접관</p>
 
                 {/* Voice waveform when AI is speaking */}
-                {answerState === "waiting" && (
+                {tts.playing && (
                   <div className="mt-3 flex items-center gap-1">
                     {Array.from({ length: 12 }).map((_, i) => (
                       <div
@@ -551,7 +594,7 @@ function LiveInterviewScreen({
                   </div>
                 )}
 
-                {answerState === "waiting" && (
+                {tts.playing && (
                   <span className="mt-2 text-xs text-muted-foreground">질문을 읽고 있습니다...</span>
                 )}
               </div>
