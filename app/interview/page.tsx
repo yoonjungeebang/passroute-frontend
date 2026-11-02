@@ -322,7 +322,7 @@ function LiveInterviewScreen({
   const [isPaused, setIsPaused] = useState(false)
   const [reAnswerCount, setReAnswerCount] = useState(0)
   const [followUpQuestion, setFollowUpQuestion] = useState<{ id: number; text: string; audioUrl?: string } | null>(null)
-  const [verbalScores, setVerbalScores] = useState({ structure: 0, logic: 0, specificity: 0, jobFit: 0 })
+  const [verbalScores] = useState({ structure: 0, logic: 0, specificity: 0, jobFit: 0 })
 
   // 영상 녹화 (클립 업로드용)
   const recorderRef = useRef<MediaRecorder | null>(null)
