@@ -24,6 +24,8 @@ import {
   Target,
   Swords,
   Trophy,
+  Mic,
+  MicOff,
 } from "lucide-react"
 import {
   getDebateTopics,
@@ -38,6 +40,8 @@ import {
   type DebateStateResponse,
 } from "@/lib/api/debate"
 import { useTTS } from "@/hooks/use-tts"
+import { useDebateSTT } from "@/hooks/use-debate-stt"
+import { useFaceAnalysis } from "@/hooks/use-face-analysis"
 
 type Phase = "setup" | "debating" | "ending"
 type SetupStep = 1 | 2 | 3 | 4
@@ -68,6 +72,81 @@ export default function DebatePage() {
   const chatEndRef = useRef<HTMLDivElement>(null)
   const tts = useTTS()
   const lastPlayedTurnIdRef = useRef<number | null>(null)
+  const [voiceMode, setVoiceMode] = useState(false)
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null)
+  const debateVideoRef = useRef<HTMLVideoElement>(null)
+
+  // currentState에서 라운드 타입 추출
+  const currentRoundType = (() => {
+    const state = debateState?.currentState ?? ""
+    if (state.startsWith("OPENING")) return "OPENING" as const
+    if (state.includes("REBUTTAL_2")) return "REBUTTAL_2" as const
+    if (state.includes("REBUTTAL_1") || state.includes("REBUTTAL")) return "REBUTTAL_1" as const
+    if (state.startsWith("CLOSING")) return "CLOSING" as const
+    return "OPENING" as const
+  })()
+
+  const debateSTT = useDebateSTT({
+    sessionId: sessionId ?? 0,
+    roundType: currentRoundType,
+    stream: mediaStream,
+    active: voiceMode && phase === "debating" && !!debateState?.waitingForUser,
+  })
+
+  // 표정 분석 (토론 진행 중 카메라가 있을 때)
+  const lastUserTurnId = debateState?.latestTurns?.filter(t => t.speakerType === "USER").pop()?.id ?? 0
+  const faceAnalysis = useFaceAnalysis({
+    sessionId: sessionId ?? 0,
+    questionId: lastUserTurnId,
+    videoRef: debateVideoRef,
+    active: phase === "debating" && !!mediaStream,
+  })
+
+  // 카메라 스트림을 video 엘리먼트에 연결
+  useEffect(() => {
+    if (debateVideoRef.current && mediaStream) {
+      debateVideoRef.current.srcObject = mediaStream
+    }
+  }, [mediaStream])
+
+  // STT 결과를 입력창에 반영
+  useEffect(() => {
+    if (debateSTT.transcript) {
+      setUserInput(debateSTT.transcript)
+    }
+  }, [debateSTT.transcript])
+
+  const toggleVoiceMode = async () => {
+    if (voiceMode) {
+      mediaStream?.getTracks().forEach(t => t.stop())
+      setMediaStream(null)
+      setVoiceMode(false)
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+        setMediaStream(stream)
+        setVoiceMode(true)
+      } catch {
+        // 카메라 없이 마이크만 시도
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+          setMediaStream(stream)
+          setVoiceMode(true)
+        } catch {
+          // 마이크 권한 거부
+        }
+      }
+    }
+  }
+
+  // 토론 종료 시 마이크 정리
+  useEffect(() => {
+    if (phase !== "debating" && mediaStream) {
+      mediaStream.getTracks().forEach(t => t.stop())
+      setMediaStream(null)
+      setVoiceMode(false)
+    }
+  }, [phase, mediaStream])
 
   // Load topics and personas
   useEffect(() => {
@@ -506,11 +585,21 @@ export default function DebatePage() {
               {/* Topic Banner */}
               <div className="mb-4 rounded-lg border border-border/50 bg-card px-4 py-3">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{selectedTopic?.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      내 입장: {selectedStance === "PRO" ? "찬성" : "반대"} / 상대: {selectedPersona?.name} / {difficultyLabel[selectedDifficulty]}
-                    </p>
+                  <div className="flex items-center gap-3">
+                    {voiceMode && mediaStream && (
+                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-border">
+                        <video ref={debateVideoRef} autoPlay playsInline muted className="h-full w-full object-cover" />
+                        {faceAnalysis.faceDetected && (
+                          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" style={{ width: `${Math.round(faceAnalysis.gazeRatio)}%` }} />
+                        )}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{selectedTopic?.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        내 입장: {selectedStance === "PRO" ? "찬성" : "반대"} / 상대: {selectedPersona?.name} / {difficultyLabel[selectedDifficulty]}
+                      </p>
+                    </div>
                   </div>
                   {phase === "debating" && (
                     <Button variant="outline" size="sm" onClick={handleEnd}>
@@ -519,6 +608,13 @@ export default function DebatePage() {
                   )}
                 </div>
               </div>
+
+              {/* Face/STT 피드백 */}
+              {voiceMode && (faceAnalysis.feedback || debateSTT.feedback) && (
+                <div className="mb-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                  {faceAnalysis.feedback || debateSTT.feedback}
+                </div>
+              )}
 
               {/* Chat Area */}
               <div className="flex-1 space-y-4 overflow-y-auto rounded-lg border border-border/50 bg-card p-4">
@@ -578,27 +674,46 @@ export default function DebatePage() {
 
               {/* Input Area */}
               {phase === "debating" && debateState?.waitingForUser && (
-                <div className="mt-4 flex gap-2">
-                  <Textarea
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="의견을 입력하세요..."
-                    className="min-h-12 max-h-32 resize-none border-border/50 bg-secondary/30"
-                    disabled={submitting}
-                  />
-                  <Button
-                    size="icon"
-                    onClick={handleSubmitTurn}
-                    disabled={!userInput.trim() || submitting}
-                    className="h-12 w-12 shrink-0"
-                  >
-                    {submitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Send className="h-4 w-4" />
-                    )}
-                  </Button>
+                <div className="mt-4 space-y-2">
+                  {voiceMode && debateSTT.audioLevel > 0 && (
+                    <div className="flex items-center gap-2 rounded-lg bg-secondary/50 px-3 py-1.5">
+                      <div className="h-2 w-2 animate-pulse rounded-full bg-rose-500" />
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                        <div className="h-full rounded-full bg-primary transition-all duration-100" style={{ width: `${debateSTT.audioLevel}%` }} />
+                      </div>
+                      <span className="text-xs text-muted-foreground">{debateSTT.wpm > 0 ? `${Math.round(debateSTT.wpm)} WPM` : "듣는 중..."}</span>
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <Button
+                      size="icon"
+                      variant={voiceMode ? "default" : "outline"}
+                      onClick={toggleVoiceMode}
+                      className="h-12 w-12 shrink-0"
+                    >
+                      {voiceMode ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+                    </Button>
+                    <Textarea
+                      value={userInput}
+                      onChange={(e) => setUserInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder={voiceMode ? "음성이 텍스트로 변환됩니다..." : "의견을 입력하세요..."}
+                      className="min-h-12 max-h-32 resize-none border-border/50 bg-secondary/30"
+                      disabled={submitting}
+                    />
+                    <Button
+                      size="icon"
+                      onClick={handleSubmitTurn}
+                      disabled={!userInput.trim() || submitting}
+                      className="h-12 w-12 shrink-0"
+                    >
+                      {submitting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               )}
 
