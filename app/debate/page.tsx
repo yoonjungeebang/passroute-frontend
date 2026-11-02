@@ -35,6 +35,7 @@ import {
   getDebateState,
   submitDebateTurn,
   endDebateSession,
+  chooseBranch,
   type DebateTopic,
   type DebatePersona,
   type DebateStateResponse,
@@ -274,6 +275,16 @@ export default function DebatePage() {
       // keep input on error
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleBranch = async (choice: "rebut_again" | "finish") => {
+    if (!sessionId) return
+    try {
+      await chooseBranch(sessionId, choice)
+      setPollTrigger(prev => prev + 1)
+    } catch {
+      // 분기 선택 실패
     }
   }
 
@@ -672,8 +683,25 @@ export default function DebatePage() {
                 <div ref={chatEndRef} />
               </div>
 
+              {/* Branch Decision */}
+              {phase === "debating" && debateState?.awaitingDecision && (
+                <div className="mt-4 flex items-center justify-center gap-3 rounded-lg border border-border/50 bg-card p-4">
+                  <span className="text-sm text-muted-foreground">다음 진행을 선택하세요:</span>
+                  {debateState.availableChoices.map(choice => (
+                    <Button
+                      key={choice}
+                      size="sm"
+                      variant={choice === "finish" ? "outline" : "default"}
+                      onClick={() => handleBranch(choice)}
+                    >
+                      {choice === "rebut_again" ? "반박 한 번 더" : "토론 마무리"}
+                    </Button>
+                  ))}
+                </div>
+              )}
+
               {/* Input Area */}
-              {phase === "debating" && debateState?.waitingForUser && (
+              {phase === "debating" && debateState?.waitingForUser && !debateState?.awaitingDecision && (
                 <div className="mt-4 space-y-2">
                   {voiceMode && debateSTT.audioLevel > 0 && (
                     <div className="flex items-center gap-2 rounded-lg bg-secondary/50 px-3 py-1.5">

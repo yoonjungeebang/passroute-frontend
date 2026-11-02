@@ -6,11 +6,11 @@ import { Sidebar } from "@/components/dashboard/sidebar"
 import { MobileHeader } from "@/components/dashboard/mobile-header"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ChevronLeft, ChevronDown, Search, X, RotateCcw, BarChart2, Loader2 } from "lucide-react"
+import { ChevronLeft, ChevronDown, Search, X, RotateCcw, BarChart2, Loader2, Trash2 } from "lucide-react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faBrain, faChartLine, faStar, faArrowTrendUp, faLightbulb } from "@fortawesome/free-solid-svg-icons"
 import { cn } from "@/lib/utils"
-import { getReportList, getInterviewReport, getDebateReport, type ReportListItem } from "@/lib/api/reports"
+import { getReportList, getInterviewReport, getDebateReport, deleteInterviewReport, deleteDebateReport, type ReportListItem } from "@/lib/api/reports"
 import { getWorstClip } from "@/lib/api/interview"
 import type { InterviewReportResponse, DebateReportResponse } from "@/types/report"
 
@@ -123,6 +123,24 @@ export default function ReportsPage() {
       setExpandedDebateReport(null)
     } finally {
       setExpandedLoading(false)
+    }
+  }
+
+  const handleDeleteReport = async (report: ReportListItem) => {
+    try {
+      if (report.reportType === "debate") {
+        await deleteDebateReport(report.domainId)
+      } else {
+        await deleteInterviewReport(report.domainId)
+      }
+      setReports(prev => prev.filter(r => r.domainId !== report.domainId))
+      if (expandedId === report.domainId) {
+        setExpandedId(null)
+        setExpandedReport(null)
+        setExpandedDebateReport(null)
+      }
+    } catch {
+      // 삭제 실패
     }
   }
 
@@ -403,6 +421,15 @@ export default function ReportsPage() {
                             <Button size="sm" variant="outline" className="text-xs gap-1.5">
                               <BarChart2 className="h-3 w-3" />
                               상세 분석
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-xs gap-1.5 text-destructive hover:bg-destructive/10"
+                              onClick={() => handleDeleteReport(report)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              삭제
                             </Button>
                           </div>
                         </div>
