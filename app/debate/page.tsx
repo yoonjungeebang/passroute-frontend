@@ -36,6 +36,8 @@ import {
   submitDebateTurn,
   endDebateSession,
   chooseBranch,
+  suggestDebateTopics,
+  generateDebateTopic,
   type DebateTopic,
   type DebatePersona,
   type DebateStateResponse,
@@ -62,6 +64,9 @@ export default function DebatePage() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
+  const [suggestKeyword, setSuggestKeyword] = useState("")
+  const [suggesting, setSuggesting] = useState(false)
+  const [generating, setGenerating] = useState(false)
 
   // Debate state
   const [sessionId, setSessionId] = useState<number | null>(null)
@@ -227,6 +232,33 @@ export default function DebatePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debateState?.latestTurns])
 
+  const handleSuggestTopics = async () => {
+    if (suggesting) return
+    setSuggesting(true)
+    try {
+      const keywords = suggestKeyword.trim() ? suggestKeyword.trim().split(/\s+/) : undefined
+      const result = await suggestDebateTopics({ keywords, count: 3 })
+      // 추천 후보를 선택하면 generateDebateTopic으로 정식 주제 생성
+      for (const candidate of result.candidates) {
+        setGenerating(true)
+        try {
+          const newTopic = await generateDebateTopic({
+            title: candidate.title,
+            description: candidate.description,
+            category: candidate.category as "AI_ETHICS" | "RECRUITMENT" | "DEV_CULTURE" | "TECH_TREND",
+          })
+          setTopics(prev => [newTopic, ...prev])
+        } catch { /* ignore individual failures */ }
+        setGenerating(false)
+      }
+    } catch {
+      // 추천 실패
+    } finally {
+      setSuggesting(false)
+      setSuggestKeyword("")
+    }
+  }
+
   const filteredTopics = categoryFilter === "all"
     ? topics
     : topics.filter(t => t.category === categoryFilter)
@@ -382,6 +414,21 @@ export default function DebatePage() {
               {setupStep === 1 && (
                 <div className="space-y-4">
                   <h2 className="text-lg font-semibold">토론 주제 선택</h2>
+
+                  {/* 주제 추천 */}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="키워드로 주제 추천받기 (예: AI, 원격근무)"
+                      value={suggestKeyword}
+                      onChange={(e) => setSuggestKeyword(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSuggestTopics()}
+                      className="flex-1 h-9 rounded-lg border border-border bg-secondary/30 px-3 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none"
+                    />
+                    <Button size="sm" onClick={handleSuggestTopics} disabled={suggesting || generating}>
+                      {suggesting || generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "추천"}
+                    </Button>
+                  </div>
 
                   {categories.length > 0 && (
                     <div className="flex gap-2 flex-wrap">
