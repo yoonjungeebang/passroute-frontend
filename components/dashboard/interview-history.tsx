@@ -19,7 +19,7 @@ import { getHistoryList, retryInterview } from "@/lib/api/history"
 import type { HistoryListResponse } from "@/types/history"
 
 function getTypeLabel(type: string): string {
-  return type === "TECHNICAL" ? "기술 면접" : "인성 면접"
+  return type === "technical" ? "기술 면접" : "인성 면접"
 }
 
 function formatDate(dateStr: string): string {

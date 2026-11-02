@@ -52,7 +52,7 @@ export default function DebatePage() {
   const [selectedTopic, setSelectedTopic] = useState<DebateTopic | null>(null)
   const [selectedStance, setSelectedStance] = useState<"PRO" | "CON" | null>(null)
   const [selectedPersona, setSelectedPersona] = useState<DebatePersona | null>(null)
-  const [selectedDifficulty, setSelectedDifficulty] = useState<"EASY" | "NORMAL" | "HARD">("NORMAL")
+  const [selectedDifficulty, setSelectedDifficulty] = useState<"low" | "middle" | "high">("middle")
   const [categoryFilter, setCategoryFilter] = useState<string>("all")
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
@@ -102,7 +102,7 @@ export default function DebatePage() {
           setPhase("ending")
           return
         }
-        if (state.isWaitingForUser) {
+        if (state.waitingForUser) {
           // 사용자 턴이면 폴링 중단
           setPolling(false)
           waitStart = 0
@@ -158,6 +158,7 @@ export default function DebatePage() {
         userStance: selectedStance,
         personaId: selectedPersona.id,
         difficulty: selectedDifficulty,
+        mode: "real",
       })
       setSessionId(sid)
       await startDebateSession(sid)
@@ -201,9 +202,9 @@ export default function DebatePage() {
   }
 
   const difficultyLabel: Record<string, string> = {
-    EASY: "쉬움",
-    NORMAL: "보통",
-    HARD: "어려움",
+    low: "쉬움",
+    middle: "보통",
+    high: "어려움",
   }
 
   const categoryLabel: Record<string, string> = {
@@ -439,15 +440,15 @@ export default function DebatePage() {
                       <span className="text-sm text-muted-foreground">난이도</span>
                       <Select
                         value={selectedDifficulty}
-                        onValueChange={(v) => setSelectedDifficulty(v as "EASY" | "NORMAL" | "HARD")}
+                        onValueChange={(v) => setSelectedDifficulty(v as "low" | "middle" | "high")}
                       >
                         <SelectTrigger className="w-28 h-8 text-sm">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="EASY">쉬움</SelectItem>
-                          <SelectItem value="NORMAL">보통</SelectItem>
-                          <SelectItem value="HARD">어려움</SelectItem>
+                          <SelectItem value="low">쉬움</SelectItem>
+                          <SelectItem value="middle">보통</SelectItem>
+                          <SelectItem value="high">어려움</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -508,7 +509,7 @@ export default function DebatePage() {
               {/* Chat Area */}
               <div className="flex-1 space-y-4 overflow-y-auto rounded-lg border border-border/50 bg-card p-4">
                 {debateState?.latestTurns.map((turn, i) => {
-                  const isUser = turn.speaker === "USER"
+                  const isUser = turn.speakerType === "USER"
                   return (
                     <div key={i} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
                       <div
@@ -534,7 +535,7 @@ export default function DebatePage() {
                   )
                 })}
 
-                {polling && !debateState?.isWaitingForUser && (
+                {polling && !debateState?.waitingForUser && (
                   <div className="flex justify-start">
                     <div className="rounded-2xl bg-secondary px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -545,7 +546,7 @@ export default function DebatePage() {
                   </div>
                 )}
 
-                {pollTimeout && !debateState?.isWaitingForUser && (
+                {pollTimeout && !debateState?.waitingForUser && (
                   <div className="flex justify-center">
                     <p className="text-xs text-muted-foreground">응답이 지연되고 있습니다. 잠시만 기다려주세요.</p>
                   </div>
@@ -555,7 +556,7 @@ export default function DebatePage() {
               </div>
 
               {/* Input Area */}
-              {phase === "debating" && debateState?.isWaitingForUser && (
+              {phase === "debating" && debateState?.waitingForUser && (
                 <div className="mt-4 flex gap-2">
                   <Textarea
                     value={userInput}

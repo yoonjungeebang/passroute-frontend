@@ -383,14 +383,6 @@ function LiveInterviewScreen({
         answerText: lastTranscriptRef.current || transcript,
         voiceData: wpm > 0 ? { filler_word_count: fillerCount, wpm } : undefined,
       })
-      if (result.evaluation) {
-        setVerbalScores({
-          structure: result.evaluation.structure ?? 0,
-          logic: result.evaluation.logic ?? 0,
-          specificity: result.evaluation.specificity ?? 0,
-          jobFit: result.evaluation.jobFit ?? 0,
-        })
-      }
       if (result.hasFollowUp && result.followUpQuestionId && result.followUpQuestionText) {
         setFollowUpQuestion({ id: result.followUpQuestionId, text: result.followUpQuestionText })
       } else {

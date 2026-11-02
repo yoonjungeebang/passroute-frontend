@@ -111,12 +111,12 @@ export default function ReportsPage() {
         const debateReport = await getDebateReport(report.domainId)
         setExpandedDebateReport(debateReport)
       } else {
-        const [interviewReport, clipUrl] = await Promise.all([
+        const [interviewReport, clipData] = await Promise.all([
           getInterviewReport(report.domainId),
           getWorstClip(report.domainId).catch(() => null),
         ])
         setExpandedReport(interviewReport)
-        setWorstClipUrl(clipUrl)
+        setWorstClipUrl(clipData?.videoUrl ?? null)
       }
     } catch {
       setExpandedReport(null)
@@ -301,8 +301,8 @@ export default function ReportsPage() {
                               {expandedDebateReport.turnFeedback.map((tf, i) => (
                                 <div key={i} className="rounded-lg border border-border/50 p-3">
                                   <div className="flex items-center justify-between mb-1.5">
-                                    <Badge variant="outline" className="text-xs">{tf.roundType}</Badge>
-                                    <span className="text-xs font-bold text-foreground">{tf.weightedScore}점</span>
+                                    <Badge variant="outline" className="text-xs">{tf.round_type}</Badge>
+                                    <span className="text-xs font-bold text-foreground">{tf.weighted_score}점</span>
                                   </div>
                                   <p className="text-xs text-muted-foreground">{tf.feedback}</p>
                                 </div>

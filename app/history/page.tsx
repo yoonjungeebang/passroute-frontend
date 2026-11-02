@@ -29,12 +29,18 @@ import { getHistoryList, searchHistory, retryInterview, getHistoryDetail } from 
 import type { HistoryListResponse, HistoryDetailResponse } from "@/types/history"
 
 const typeConfig: Record<string, string> = {
-  TECHNICAL: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
-  PERSONALITY: "bg-pink-500/20 text-pink-400 border-pink-500/30",
+  technical: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+  personality: "bg-pink-500/20 text-pink-400 border-pink-500/30",
 }
 
 function getTypeLabel(type: string): string {
-  return type === "TECHNICAL" ? "기술 면접" : "인성 면접"
+  return type === "technical" ? "기술 면접" : "인성 면접"
+}
+
+const difficultyLabel: Record<string, string> = {
+  low: "기본",
+  middle: "보통",
+  high: "심화",
 }
 
 function formatDate(dateStr: string): string {
@@ -63,9 +69,9 @@ export default function HistoryPage() {
         const data = await searchHistory({ keyword: searchQuery, size: 50 })
         setHistories(data.content)
       } else {
-        const params: { type?: "TECHNICAL" | "PERSONALITY"; size?: number } = { size: 50 }
+        const params: { type?: "technical" | "personality"; size?: number } = { size: 50 }
         if (typeFilter !== "all") {
-          params.type = typeFilter as "TECHNICAL" | "PERSONALITY"
+          params.type = typeFilter as "technical" | "personality"
         }
         const data = await getHistoryList(params)
         setHistories(data.content)
@@ -153,8 +159,8 @@ export default function HistoryPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">전체</SelectItem>
-                  <SelectItem value="TECHNICAL">기술 면접</SelectItem>
-                  <SelectItem value="PERSONALITY">인성 면접</SelectItem>
+                  <SelectItem value="technical">기술 면접</SelectItem>
+                  <SelectItem value="personality">인성 면접</SelectItem>
                 </SelectContent>
               </Select>
             </CardContent>
@@ -262,7 +268,7 @@ export default function HistoryPage() {
                                 ) : expandedDetail ? (
                                   <div className="space-y-4">
                                     <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-                                      <span>난이도: <strong className="text-foreground">{expandedDetail.difficulty}</strong></span>
+                                      <span>난이도: <strong className="text-foreground">{difficultyLabel[expandedDetail.difficulty] ?? expandedDetail.difficulty}</strong></span>
                                       <span>면접관: <strong className="text-foreground">{expandedDetail.aiInterviewer}</strong></span>
                                       <span>세션 수: <strong className="text-foreground">{expandedDetail.sessions.length}</strong></span>
                                     </div>
