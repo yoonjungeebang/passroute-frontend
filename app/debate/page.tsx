@@ -37,6 +37,7 @@ import {
   type DebatePersona,
   type DebateStateResponse,
 } from "@/lib/api/debate"
+import { useTTS } from "@/hooks/use-tts"
 
 type Phase = "setup" | "debating" | "ending"
 type SetupStep = 1 | 2 | 3 | 4
@@ -65,6 +66,8 @@ export default function DebatePage() {
   const [polling, setPolling] = useState(false)
   const [pollTrigger, setPollTrigger] = useState(0)
   const chatEndRef = useRef<HTMLDivElement>(null)
+  const tts = useTTS()
+  const lastPlayedTurnIdRef = useRef<number | null>(null)
 
   // Load topics and personas
   useEffect(() => {
@@ -131,6 +134,17 @@ export default function DebatePage() {
   // Auto scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [debateState?.latestTurns])
+
+  // AI 턴의 TTS 재생
+  useEffect(() => {
+    if (!debateState?.latestTurns?.length) return
+    const lastTurn = debateState.latestTurns[debateState.latestTurns.length - 1]
+    if (lastTurn.speakerType !== "USER" && lastTurn.audioUrl && lastTurn.id !== lastPlayedTurnIdRef.current) {
+      lastPlayedTurnIdRef.current = lastTurn.id
+      tts.play(lastTurn.audioUrl)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debateState?.latestTurns])
 
   const filteredTopics = categoryFilter === "all"
@@ -510,6 +524,7 @@ export default function DebatePage() {
               <div className="flex-1 space-y-4 overflow-y-auto rounded-lg border border-border/50 bg-card p-4">
                 {debateState?.latestTurns.map((turn, i) => {
                   const isUser = turn.speakerType === "USER"
+                  const isTtsPlaying = !isUser && tts.playing && turn.id === lastPlayedTurnIdRef.current
                   return (
                     <div key={i} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
                       <div
@@ -527,6 +542,12 @@ export default function DebatePage() {
                             <Badge variant="outline" className={`text-[10px] ${isUser ? "border-white/30 text-white/70" : ""}`}>
                               {turn.round}
                             </Badge>
+                          )}
+                          {isTtsPlaying && (
+                            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
+                              재생 중
+                            </span>
                           )}
                         </div>
                         <p className="text-sm whitespace-pre-wrap">{turn.content}</p>

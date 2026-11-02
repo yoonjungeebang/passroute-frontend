@@ -39,6 +39,7 @@ import { getSessionQuestions, submitAnswer, endInterview } from "@/lib/api/inter
 import type { SessionQuestion, AnswerProgressResponse } from "@/types/interview"
 import { useSTT } from "@/hooks/use-stt"
 import { useFaceAnalysis } from "@/hooks/use-face-analysis"
+import { useTTS } from "@/hooks/use-tts"
 
 // Pre-check Component
 function PreCheckScreen({
@@ -320,14 +321,26 @@ function LiveInterviewScreen({
   const [totalTime, setTotalTime] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [reAnswerCount, setReAnswerCount] = useState(0)
-  const [followUpQuestion, setFollowUpQuestion] = useState<{ id: number; text: string } | null>(null)
+  const [followUpQuestion, setFollowUpQuestion] = useState<{ id: number; text: string; audioUrl?: string } | null>(null)
   const [verbalScores, setVerbalScores] = useState({ structure: 0, logic: 0, specificity: 0, jobFit: 0 })
 
+  // TTS 재생
+  const tts = useTTS()
+
   const currentQuestion = followUpQuestion
-    ? { questionId: followUpQuestion.id, questionText: followUpQuestion.text, questionOrder: -1 }
+    ? { questionId: followUpQuestion.id, questionText: followUpQuestion.text, questionOrder: -1, audioUrl: followUpQuestion.audioUrl }
     : questions[currentQuestionIndex]
   const totalQuestions = questions.length
   const questionTimeLimit = 210 // 3:30
+
+  // 질문이 바뀔 때 TTS 재생
+  useEffect(() => {
+    if (currentQuestion?.audioUrl) {
+      tts.play(currentQuestion.audioUrl)
+    }
+    return () => tts.stop()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentQuestion?.questionId])
 
   // STT hook
   const { transcript, wpm, fillerCount, audioLevel, feedback: sttFeedback } = useSTT({
@@ -384,7 +397,7 @@ function LiveInterviewScreen({
         voiceData: wpm > 0 ? { filler_word_count: fillerCount, wpm } : undefined,
       })
       if (result.hasFollowUp && result.followUpQuestionId && result.followUpQuestionText) {
-        setFollowUpQuestion({ id: result.followUpQuestionId, text: result.followUpQuestionText })
+        setFollowUpQuestion({ id: result.followUpQuestionId, text: result.followUpQuestionText, audioUrl: result.audioUrl })
       } else {
         setFollowUpQuestion(null)
       }
@@ -511,7 +524,7 @@ function LiveInterviewScreen({
                 {/* AI Avatar with voice visualization */}
                 <div className="relative">
                   {/* Pulsing rings when speaking */}
-                  {answerState === "waiting" && (
+                  {tts.playing && (
                     <>
                       <div className="absolute inset-0 m-auto h-24 w-24 animate-ping rounded-full border border-foreground/5" style={{ animationDuration: "2s" }} />
                       <div className="absolute inset-0 m-auto h-28 w-28 animate-ping rounded-full border border-foreground/3" style={{ animationDuration: "3s" }} />
@@ -519,7 +532,7 @@ function LiveInterviewScreen({
                   )}
                   <div className={cn(
                     "relative flex h-20 w-20 items-center justify-center rounded-full border-2 transition-all duration-300",
-                    answerState === "waiting" ? "border-foreground/20 bg-foreground/5" : "border-border bg-background"
+                    tts.playing ? "border-foreground/20 bg-foreground/5" : "border-border bg-background"
                   )}>
                     <Headphones className="h-8 w-8 text-foreground/60" />
                   </div>
@@ -527,7 +540,7 @@ function LiveInterviewScreen({
                 <p className="mt-3 text-sm font-medium text-foreground">AI 면접관</p>
 
                 {/* Voice waveform when AI is speaking */}
-                {answerState === "waiting" && (
+                {tts.playing && (
                   <div className="mt-3 flex items-center gap-1">
                     {Array.from({ length: 12 }).map((_, i) => (
                       <div
@@ -543,7 +556,7 @@ function LiveInterviewScreen({
                   </div>
                 )}
 
-                {answerState === "waiting" && (
+                {tts.playing && (
                   <span className="mt-2 text-xs text-muted-foreground">질문을 읽고 있습니다...</span>
                 )}
               </div>
