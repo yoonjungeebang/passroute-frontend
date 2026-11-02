@@ -14,7 +14,9 @@ interface UseSTTReturn {
   wpm: number
   fillerCount: number
   audioLevel: number
+  silenceSec: number
   feedback: string | null
+  error: string | null
 }
 
 export function useSTT({ sessionId, questionId, stream, active }: UseSTTParams): UseSTTReturn {
@@ -22,7 +24,9 @@ export function useSTT({ sessionId, questionId, stream, active }: UseSTTParams):
   const [wpm, setWpm] = useState(0)
   const [fillerCount, setFillerCount] = useState(0)
   const [audioLevel, setAudioLevel] = useState(0)
+  const [silenceSec, setSilenceSec] = useState(0)
   const [feedback, setFeedback] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const wsRef = useRef<WebSocket | null>(null)
   const audioCtxRef = useRef<AudioContext | null>(null)
@@ -116,10 +120,15 @@ export function useSTT({ sessionId, questionId, stream, active }: UseSTTParams):
               setTranscript(data.text || "")
               if (data.wpm) setWpm(data.wpm)
               if (data.filler_count !== undefined) setFillerCount(data.filler_count)
+              setSilenceSec(0)
+            } else if (data.status === "silence") {
+              setSilenceSec(data.silence_sec ?? 0)
             } else if (data.status === "feedback") {
               setFeedback(data.message || null)
               clearTimeout(feedbackTimerRef.current)
               feedbackTimerRef.current = setTimeout(() => setFeedback(null), 3000)
+            } else if (data.status === "error") {
+              setError(data.message || "STT 오류가 발생했습니다")
             }
           } catch { /* ignore parse errors */ }
         }
@@ -142,8 +151,10 @@ export function useSTT({ sessionId, questionId, stream, active }: UseSTTParams):
     setTranscript("")
     setWpm(0)
     setFillerCount(0)
+    setSilenceSec(0)
     setFeedback(null)
+    setError(null)
   }, [questionId])
 
-  return { transcript, wpm, fillerCount, audioLevel, feedback }
+  return { transcript, wpm, fillerCount, audioLevel, silenceSec, feedback, error }
 }
